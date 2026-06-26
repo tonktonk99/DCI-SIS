@@ -127,36 +127,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save_
     } else {
         $scoresInput = $_POST['scores'] ?? [];
 
-        foreach ($scoresInput as $studentId => $items) {
-            $studentId = (int)$studentId;
-            foreach ($items as $gradeItemId => $scoreValue) {
-                $gradeItemId = (int)$gradeItemId;
-                $scoreValue = trim((string)$scoreValue);
+        // Validate item ownership: load all valid grade_item IDs for this section once
+        $sectionItems = loadGradeItems($pdo, $selectedSectionId);
+        $validItemIds = array_flip(array_column($sectionItems, 'id'));
 
-                if ($studentId <= 0 || $gradeItemId <= 0 || $scoreValue === '') {
-                    continue;
-                }
+        // Pre-load existing score rows in 1 query (replaces N×M per-cell SELECT)
+        $existingMap = [];
+        if ($validItemIds) {
+            $ph = implode(',', array_fill(0, count($validItemIds), '?'));
+            $es = $pdo->prepare("SELECT id, grade_item_id, student_id FROM grade_scores WHERE grade_item_id IN ($ph)");
+            $es->execute(array_keys($validItemIds));
+            foreach ($es->fetchAll(PDO::FETCH_ASSOC) as $row) {
+                $existingMap[(int)$row['student_id']][(int)$row['grade_item_id']] = (int)$row['id'];
+            }
+        }
 
-                $score = (float)$scoreValue;
+        $stmtUpdate = $pdo->prepare("UPDATE grade_scores SET score = ?, updated_at = NOW() WHERE id = ?");
+        $stmtInsert = $pdo->prepare("INSERT INTO grade_scores (grade_item_id, student_id, score, created_at, updated_at) VALUES (?, ?, ?, NOW(), NOW())");
 
-                $verifyItem = $pdo->prepare("SELECT id FROM grade_items WHERE id = ? AND section_id = ? LIMIT 1");
-                $verifyItem->execute([$gradeItemId, $selectedSectionId]);
-                if (!$verifyItem->fetchColumn()) {
-                    continue;
-                }
+        try {
+            $pdo->beginTransaction();
 
-                $existing = $pdo->prepare("SELECT id FROM grade_scores WHERE grade_item_id = ? AND student_id = ? LIMIT 1");
-                $existing->execute([$gradeItemId, $studentId]);
-                $existingId = $existing->fetchColumn();
+            foreach ($scoresInput as $studentId => $items) {
+                $studentId = (int)$studentId;
+                foreach ($items as $gradeItemId => $scoreValue) {
+                    $gradeItemId = (int)$gradeItemId;
+                    $scoreValue = trim((string)$scoreValue);
 
-                if ($existingId) {
-                    $update = $pdo->prepare("UPDATE grade_scores SET score = ?, updated_at = NOW() WHERE id = ?");
-                    $update->execute([$score, (int)$existingId]);
-                } else {
-                    $insert = $pdo->prepare("INSERT INTO grade_scores (grade_item_id, student_id, score, created_at, updated_at) VALUES (?, ?, ?, NOW(), NOW())");
-                    $insert->execute([$gradeItemId, $studentId, $score]);
+                    if ($studentId <= 0 || $gradeItemId <= 0 || $scoreValue === '') {
+                        continue;
+                    }
+                    if (!isset($validItemIds[$gradeItemId])) {
+                        continue;
+                    }
+
+                    $score = (float)$scoreValue;
+
+                    if (isset($existingMap[$studentId][$gradeItemId])) {
+                        $stmtUpdate->execute([$score, $existingMap[$studentId][$gradeItemId]]);
+                    } else {
+                        $stmtInsert->execute([$gradeItemId, $studentId, $score]);
+                    }
                 }
             }
+
+            $pdo->commit();
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) $pdo->rollBack();
+            throw $e;
         }
 
         header('Location: gradebook.php?section_id=' . $selectedSectionId);
@@ -172,24 +190,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'submi
         $roster = loadRoster($pdo, $selectedSectionId);
         $scores = loadScores($pdo, $selectedSectionId);
 
-        foreach ($roster as $studentRow) {
-            $studentId = (int)$studentRow['student_id'];
-            $enrollmentId = (int)$studentRow['enrollment_id'];
-            $studentScores = $scores[$studentId] ?? [];
-            $total = weightedTotal($gradeItems, $studentScores);
-            [$letter, $point] = calculateLetterGrade($total);
-
-            $existing = $pdo->prepare("SELECT id FROM final_grades WHERE enrollment_id = ? LIMIT 1");
-            $existing->execute([$enrollmentId]);
-            $finalId = $existing->fetchColumn();
-
-            if ($finalId) {
-                $update = $pdo->prepare("UPDATE final_grades SET raw_score = ?, letter_grade = ?, grade_point = ?, status = 'submitted', submitted_at = NOW() WHERE id = ?");
-                $update->execute([$total, $letter, $point, (int)$finalId]);
-            } else {
-                $insert = $pdo->prepare("INSERT INTO final_grades (enrollment_id, student_id, section_id, raw_score, letter_grade, grade_point, status, submitted_at) VALUES (?, ?, ?, ?, ?, ?, 'submitted', NOW())");
-                $insert->execute([$enrollmentId, $studentId, $selectedSectionId, $total, $letter, $point]);
+        // Pre-load existing final_grade rows in 1 query (replaces N per-student SELECT)
+        $existingFinals = [];
+        if ($roster) {
+            $enrollmentIds = array_map('intval', array_column($roster, 'enrollment_id'));
+            $ph = implode(',', array_fill(0, count($enrollmentIds), '?'));
+            $ef = $pdo->prepare("SELECT id, enrollment_id FROM final_grades WHERE enrollment_id IN ($ph)");
+            $ef->execute($enrollmentIds);
+            foreach ($ef->fetchAll(PDO::FETCH_ASSOC) as $row) {
+                $existingFinals[(int)$row['enrollment_id']] = (int)$row['id'];
             }
+        }
+
+        $stmtUpdate = $pdo->prepare("UPDATE final_grades SET raw_score = ?, letter_grade = ?, grade_point = ?, status = 'submitted', submitted_at = NOW() WHERE id = ?");
+        $stmtInsert = $pdo->prepare("INSERT INTO final_grades (enrollment_id, student_id, section_id, raw_score, letter_grade, grade_point, status, submitted_at) VALUES (?, ?, ?, ?, ?, ?, 'submitted', NOW())");
+
+        try {
+            $pdo->beginTransaction();
+
+            foreach ($roster as $studentRow) {
+                $studentId = (int)$studentRow['student_id'];
+                $enrollmentId = (int)$studentRow['enrollment_id'];
+                $studentScores = $scores[$studentId] ?? [];
+                $total = weightedTotal($gradeItems, $studentScores);
+                [$letter, $point] = calculateLetterGrade($total);
+
+                if (isset($existingFinals[$enrollmentId])) {
+                    $stmtUpdate->execute([$total, $letter, $point, $existingFinals[$enrollmentId]]);
+                } else {
+                    $stmtInsert->execute([$enrollmentId, $studentId, $selectedSectionId, $total, $letter, $point]);
+                }
+            }
+
+            $pdo->commit();
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) $pdo->rollBack();
+            throw $e;
         }
 
         header('Location: gradebook.php?section_id=' . $selectedSectionId);
