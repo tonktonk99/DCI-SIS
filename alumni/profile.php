@@ -1,11 +1,7 @@
 <?php
 require '../includes/auth.php';
-checkLogin();
+requireRole('alumni');
 $user = getUser();
-
-if (($user['role'] ?? '') !== 'alumni') {
-    die(__('access_denied'));
-}
 
 $pageTitle = __('alumni_profile');
 $crumb = __('alumni_profile');

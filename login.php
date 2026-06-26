@@ -1,5 +1,5 @@
 <?php
-session_start();
+require __DIR__ . '/config/session.php';
 require __DIR__ . '/includes/lang.php';
 
 if (isset($_SESSION['user'])) {

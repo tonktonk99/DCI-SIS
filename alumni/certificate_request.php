@@ -2,12 +2,8 @@
 require '../includes/auth.php';
 require '../config/database.php';
 
-checkLogin();
+requireRole('alumni');
 $user = getUser();
-
-if (($user['role'] ?? '') !== 'alumni') {
-    die(__('access_denied'));
-}
 
 $pageTitle = __('alumni_document_request');
 $crumb = __('alumni_documents_crumb');

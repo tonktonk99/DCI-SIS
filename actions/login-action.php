@@ -1,11 +1,10 @@
 <?php
-session_start();
-
+require '../config/session.php';
 require '../config/database.php';
 require '../includes/audit.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: ../login.php');
+    header('Location: ' . APP_BASE . '/login.php');
     exit;
 }
 
@@ -26,7 +25,6 @@ if ($user) {
     if (password_get_info($storedPassword)['algo'] !== 0) {
         if (password_verify($passwordInput, $storedPassword)) {
             $loginOk = true;
-
             if (password_needs_rehash($storedPassword, PASSWORD_DEFAULT)) {
                 $needsRehash = true;
             }
@@ -43,17 +41,20 @@ if ($user) {
 if ($user && $loginOk) {
     if ($needsRehash) {
         $newHash = password_hash($passwordInput, PASSWORD_DEFAULT);
-
-        $update = $pdo->prepare("UPDATE users SET password = ? WHERE id = ?");
-        $update->execute([
-            $newHash,
-            (int)$user['id']
-        ]);
-
-        $user['password'] = $newHash;
+        $pdo->prepare("UPDATE users SET password = ? WHERE id = ?")
+            ->execute([$newHash, (int)$user['id']]);
     }
 
-    $_SESSION['user'] = $user;
+    session_regenerate_id(true);
+
+    $_SESSION['user'] = [
+        'id'       => (int)$user['id'],
+        'username' => $user['username'],
+        'role'     => $user['role'],
+        'name'     => trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? ''))
+                       ?: $user['username'],
+    ];
+    $_SESSION['last_activity'] = time();
 
     logAudit(
         $pdo,
@@ -64,20 +65,20 @@ if ($user && $loginOk) {
         'User logged in successfully: ' . $user['username']
     );
 
-    if ($user['role'] === 'admin') {
-        header('Location: ../admin/dashboard.php');
-    } elseif ($user['role'] === 'registrar') {
-        header('Location: ../registrar/dashboard.php');
-    } elseif ($user['role'] === 'student') {
-        header('Location: ../student/dashboard.php');
-    } elseif ($user['role'] === 'professor') {
-        header('Location: ../professor/dashboard.php');
-    } elseif ($user['role'] === 'alumni') {
-        header('Location: ../alumni/dashboard.php');
+    $role = $user['role'];
+    if ($role === 'admin') {
+        header('Location: ' . APP_BASE . '/admin/dashboard.php');
+    } elseif ($role === 'registrar') {
+        header('Location: ' . APP_BASE . '/registrar/dashboard.php');
+    } elseif ($role === 'student') {
+        header('Location: ' . APP_BASE . '/student/dashboard.php');
+    } elseif ($role === 'professor') {
+        header('Location: ' . APP_BASE . '/professor/dashboard.php');
+    } elseif ($role === 'alumni') {
+        header('Location: ' . APP_BASE . '/alumni/dashboard.php');
     } else {
-        header('Location: ../index.php');
+        header('Location: ' . APP_BASE . '/index.php');
     }
-
     exit;
 }
 
@@ -90,5 +91,5 @@ logAudit(
     'Failed login attempt for username: ' . $username
 );
 
-header('Location: ../login.php?error=1');
+header('Location: ' . APP_BASE . '/login.php?error=1');
 exit;

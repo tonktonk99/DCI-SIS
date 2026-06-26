@@ -3,12 +3,8 @@ require '../includes/auth.php';
 require '../config/database.php';
 require '../includes/audit.php';
 
-checkLogin();
+requireRole('registrar', 'admin');
 $user = getUser();
-
-if (($user['role'] ?? '') !== 'registrar' && ($user['role'] ?? '') !== 'admin') {
-    die('Access denied');
-}
 
 $pageTitle = __('manage_document_requests');
 $crumb = __('office_of_registrar') . ' / ' . __('document_services');

@@ -2,12 +2,8 @@
 require '../includes/auth.php';
 require '../config/database.php';
 
-checkLogin();
+requireRole('student');
 $user = getUser();
-
-if (($user['role'] ?? '') !== 'student') {
-    die('Access denied');
-}
 
 $stmt = $pdo->prepare("SELECT students.*, programs.program_code, programs.program_name_th, programs.program_name_en FROM students LEFT JOIN programs ON programs.id = students.program_id WHERE students.user_id = ? LIMIT 1");
 $stmt->execute([(int)$user['id']]);

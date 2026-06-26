@@ -2,12 +2,8 @@
 require '../includes/auth.php';
 require '../config/database.php';
 
-checkLogin();
+requireRole('registrar', 'admin');
 $user = getUser();
-
-if (($user['role'] ?? '') !== 'registrar' && ($user['role'] ?? '') !== 'admin') {
-    die('Access denied');
-}
 
 $studentId = (int)($_GET['student_id'] ?? 0);
 

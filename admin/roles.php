@@ -1,11 +1,7 @@
 <?php
 require '../includes/auth.php';
-checkLogin();
+requireRole('admin');
 $user = getUser();
-
-if (($user['role'] ?? '') !== 'admin') {
-    die('Access denied');
-}
 
 $pageTitle = __('roles_permissions');
 $crumb = __('administration') . ' / ' . __('roles_permissions');

@@ -2,12 +2,8 @@
 require '../includes/auth.php';
 require '../config/database.php';
 
-checkLogin();
+requireRole('admin');
 $user = getUser();
-
-if (($user['role'] ?? '') !== 'admin') {
-    die('Access denied');
-}
 
 $pageTitle = __('audit_trail');
 $crumb = __('administration') . ' / ' . __('audit_trail');

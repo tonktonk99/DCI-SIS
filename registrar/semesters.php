@@ -2,13 +2,8 @@
 require '../includes/auth.php';
 require '../config/database.php';
 
-checkLogin();
-
+requireRole('registrar', 'admin');
 $user = getUser();
-
-if ($user['role'] !== 'registrar' && $user['role'] !== 'admin') {
-    die('Access denied');
-}
 
 $pageTitle = __('manage_semesters');
 $crumb = __('office_of_registrar') . ' / ' . __('academic_setup');

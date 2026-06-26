@@ -1,5 +1,5 @@
 <?php
-session_start();
+require '../config/session.php';
 
 $lang = $_GET['lang'] ?? 'th';
 if (!in_array($lang, ['th', 'en'])) {
@@ -8,9 +8,9 @@ if (!in_array($lang, ['th', 'en'])) {
 
 $_SESSION['lang'] = $lang;
 
-$redirect = $_GET['redirect'] ?? '/dci-sis/';
-if (strpos($redirect, '/dci-sis/') !== 0) {
-    $redirect = '/dci-sis/';
+$redirect = $_GET['redirect'] ?? APP_BASE . '/';
+if (strpos($redirect, APP_BASE . '/') !== 0) {
+    $redirect = APP_BASE . '/';
 }
 
 header('Location: ' . $redirect);

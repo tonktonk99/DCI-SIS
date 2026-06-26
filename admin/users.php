@@ -3,12 +3,8 @@ require '../includes/auth.php';
 require '../config/database.php';
 require '../includes/audit.php';
 
-checkLogin();
+requireRole('admin');
 $user = getUser();
-
-if (($user['role'] ?? '') !== 'admin') {
-    die('Access denied');
-}
 
 $pageTitle = __('user_accounts');
 $crumb = __('administration') . ' / ' . __('user_accounts');

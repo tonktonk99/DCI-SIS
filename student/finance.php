@@ -2,12 +2,8 @@
 require '../includes/auth.php';
 require '../config/database.php';
 
-checkLogin();
+requireRole('student');
 $user = getUser();
-
-if (($user['role'] ?? '') !== 'student') {
-    die('Access denied');
-}
 
 $pageTitle = __('student_financial');
 $crumb = __('student_financial');

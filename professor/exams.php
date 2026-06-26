@@ -2,13 +2,8 @@
 require '../includes/auth.php';
 require '../config/database.php';
 
-checkLogin();
-
+requireRole('professor');
 $user = getUser();
-
-if (($user['role'] ?? '') !== 'professor') {
-    die('Access denied');
-}
 
 $pageTitle = __('exam_scores');
 $crumb = __('exam_scores');
