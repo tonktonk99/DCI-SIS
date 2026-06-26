@@ -58,11 +58,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-if (isset($_GET['set_status'], $_GET['id'])) {
-    $id = (int)$_GET['id'];
-    $newStatus = $_GET['set_status'];
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'set_status') {
+    verify_csrf();
+    $id = (int)($_POST['id'] ?? 0);
+    $newStatus = $_POST['status'] ?? '';
     $allowed = ['studying', 'leave', 'graduated', 'withdrawn', 'suspended'];
-    if (in_array($newStatus, $allowed, true)) {
+    if ($id > 0 && in_array($newStatus, $allowed, true)) {
         $stmt = $pdo->prepare("UPDATE students SET study_status = ? WHERE id = ?");
         $stmt->execute([$newStatus, $id]);
     }
@@ -96,7 +97,7 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <td class="mono"><?= number_format((float)$student['cumulative_gpa'], 2) ?></td>
                         <td class="mono"><?= (int)$student['total_credits_earned'] ?></td>
                         <td><span class="badge badge-blue"><?= htmlspecialchars($student['study_status']) ?></span></td>
-                        <td><div style="display:flex;gap:6px;flex-wrap:wrap;"><a class="btn btn-light" style="padding:6px 10px;font-size:11px;" href="students.php?id=<?= (int)$student['id'] ?>&set_status=studying"><?= __('status_studying') ?></a><a class="btn btn-light" style="padding:6px 10px;font-size:11px;" href="students.php?id=<?= (int)$student['id'] ?>&set_status=leave"><?= __('status_leave') ?></a><a class="btn btn-light" style="padding:6px 10px;font-size:11px;" href="students.php?id=<?= (int)$student['id'] ?>&set_status=graduated"><?= __('status_graduated') ?></a></div></td>
+                        <td><div style="display:flex;gap:6px;flex-wrap:wrap;"><form method="post" style="display:inline;"><?= csrf_field() ?><input type="hidden" name="action" value="set_status"><input type="hidden" name="id" value="<?= (int)$student['id'] ?>"><input type="hidden" name="status" value="studying"><button type="submit" class="btn btn-light" style="padding:6px 10px;font-size:11px;"><?= __('status_studying') ?></button></form><form method="post" style="display:inline;"><?= csrf_field() ?><input type="hidden" name="action" value="set_status"><input type="hidden" name="id" value="<?= (int)$student['id'] ?>"><input type="hidden" name="status" value="leave"><button type="submit" class="btn btn-light" style="padding:6px 10px;font-size:11px;"><?= __('status_leave') ?></button></form><form method="post" style="display:inline;"><?= csrf_field() ?><input type="hidden" name="action" value="set_status"><input type="hidden" name="id" value="<?= (int)$student['id'] ?>"><input type="hidden" name="status" value="graduated"><button type="submit" class="btn btn-light" style="padding:6px 10px;font-size:11px;"><?= __('status_graduated') ?></button></form></div></td>
                     </tr><?php endforeach; ?>
                 </tbody></table></div>
             </div>

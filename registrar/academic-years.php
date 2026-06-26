@@ -45,14 +45,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-if (isset($_GET['set_current'])) {
-    $id = (int)$_GET['set_current'];
-
-    $pdo->query("UPDATE academic_years SET is_current = 0");
-
-    $stmt = $pdo->prepare("UPDATE academic_years SET is_current = 1 WHERE id = ?");
-    $stmt->execute([$id]);
-
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'set_current') {
+    verify_csrf();
+    $id = (int)($_POST['id'] ?? 0);
+    if ($id > 0) {
+        $pdo->query("UPDATE academic_years SET is_current = 0");
+        $stmt = $pdo->prepare("UPDATE academic_years SET is_current = 1 WHERE id = ?");
+        $stmt->execute([$id]);
+    }
     header('Location: academic-years.php');
     exit;
 }
@@ -133,9 +133,7 @@ $years = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                                     <td>
                                         <?php if ((int)$year['is_current'] !== 1): ?>
-                                            <a class="btn btn-light" href="academic-years.php?set_current=<?= (int)$year['id'] ?>">
-                                                <?= __('set_current') ?>
-                                            </a>
+                                            <form method="post" style="display:inline;"><?= csrf_field() ?><input type="hidden" name="action" value="set_current"><input type="hidden" name="id" value="<?= (int)$year['id'] ?>"><button type="submit" class="btn btn-light"><?= __('set_current') ?></button></form>
                                         <?php else: ?>
                                             -
                                         <?php endif; ?>

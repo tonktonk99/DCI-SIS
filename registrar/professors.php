@@ -42,16 +42,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-if (isset($_GET['toggle_status'])) {
-    $id = (int)$_GET['toggle_status'];
-    $stmt = $pdo->prepare("SELECT status FROM staff WHERE id = ?");
-    $stmt->execute([$id]);
-    $currentStatus = $stmt->fetchColumn();
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'toggle_status') {
+    verify_csrf();
+    $id = (int)($_POST['id'] ?? 0);
+    if ($id > 0) {
+        $stmt = $pdo->prepare("SELECT status FROM staff WHERE id = ?");
+        $stmt->execute([$id]);
+        $currentStatus = $stmt->fetchColumn();
 
-    if ($currentStatus) {
-        $newStatus = $currentStatus === 'active' ? 'inactive' : 'active';
-        $update = $pdo->prepare("UPDATE staff SET status = ? WHERE id = ?");
-        $update->execute([$newStatus, $id]);
+        if ($currentStatus) {
+            $newStatus = $currentStatus === 'active' ? 'inactive' : 'active';
+            $update = $pdo->prepare("UPDATE staff SET status = ? WHERE id = ?");
+            $update->execute([$newStatus, $id]);
+        }
     }
     header('Location: professors.php');
     exit;
@@ -72,7 +75,7 @@ $staffList = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <div class="grid-2">
             <div><h3 class="section-title"><?= __('professor_list') ?></h3><div class="card"><table class="table"><thead><tr><th><?= __('code') ?></th><th><?= __('name') ?></th><th><?= __('account') ?></th><th><?= __('position') ?></th><th><?= __('status') ?></th><th><?= __('manage') ?></th></tr></thead><tbody>
                 <?php if (count($staffList) === 0): ?><tr><td colspan="6"><?= __('no_professor_records') ?></td></tr><?php endif; ?>
-                <?php foreach ($staffList as $staff): ?><tr><td class="mono"><?= htmlspecialchars($staff['staff_code']) ?></td><td><?= htmlspecialchars($staff['first_name'] . ' ' . $staff['last_name']) ?></td><td><?= htmlspecialchars($staff['username'] ?? '-') ?></td><td><?= htmlspecialchars($staff['position'] ?? '-') ?></td><td><?= $staff['status'] === 'active' ? '<span class="badge badge-green">' . __('active') . '</span>' : '<span class="badge badge-blue">' . __('inactive') . '</span>' ?></td><td><a href="professors.php?toggle_status=<?= (int)$staff['id'] ?>" class="btn btn-light" style="padding:6px 10px;font-size:11px;"><?= __('toggle') ?></a></td></tr><?php endforeach; ?>
+                <?php foreach ($staffList as $staff): ?><tr><td class="mono"><?= htmlspecialchars($staff['staff_code']) ?></td><td><?= htmlspecialchars($staff['first_name'] . ' ' . $staff['last_name']) ?></td><td><?= htmlspecialchars($staff['username'] ?? '-') ?></td><td><?= htmlspecialchars($staff['position'] ?? '-') ?></td><td><?= $staff['status'] === 'active' ? '<span class="badge badge-green">' . __('active') . '</span>' : '<span class="badge badge-blue">' . __('inactive') . '</span>' ?></td><td><form method="post" style="display:inline;"><?= csrf_field() ?><input type="hidden" name="action" value="toggle_status"><input type="hidden" name="id" value="<?= (int)$staff['id'] ?>"><button type="submit" class="btn btn-light" style="padding:6px 10px;font-size:11px;"><?= __('toggle') ?></button></form></td></tr><?php endforeach; ?>
             </tbody></table></div></div>
             <div><h3 class="section-title"><?= __('add_professor') ?></h3><div class="card"><form method="POST" action="professors.php">
                 <?= csrf_field() ?>

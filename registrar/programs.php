@@ -45,18 +45,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-if (isset($_GET['toggle_status'])) {
-    $id = (int)$_GET['toggle_status'];
-    $stmt = $pdo->prepare("SELECT status FROM programs WHERE id = ?");
-    $stmt->execute([$id]);
-    $currentStatus = $stmt->fetchColumn();
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'toggle_status') {
+    verify_csrf();
+    $id = (int)($_POST['id'] ?? 0);
+    if ($id > 0) {
+        $stmt = $pdo->prepare("SELECT status FROM programs WHERE id = ?");
+        $stmt->execute([$id]);
+        $currentStatus = $stmt->fetchColumn();
 
-    if ($currentStatus) {
-        $newStatus = $currentStatus === 'active' ? 'inactive' : 'active';
-        $update = $pdo->prepare("UPDATE programs SET status = ? WHERE id = ?");
-        $update->execute([$newStatus, $id]);
+        if ($currentStatus) {
+            $newStatus = $currentStatus === 'active' ? 'inactive' : 'active';
+            $update = $pdo->prepare("UPDATE programs SET status = ? WHERE id = ?");
+            $update->execute([$newStatus, $id]);
+        }
     }
-
     header('Location: programs.php');
     exit;
 }
@@ -119,7 +121,7 @@ $programs = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                         <?php endif; ?>
                                     </td>
                                     <td>
-                                        <a class="btn btn-light" style="padding:6px 10px;font-size:11px;" href="programs.php?toggle_status=<?= (int)$program['id'] ?>"><?= __('toggle') ?></a>
+                                        <form method="post" style="display:inline;"><?= csrf_field() ?><input type="hidden" name="action" value="toggle_status"><input type="hidden" name="id" value="<?= (int)$program['id'] ?>"><button type="submit" class="btn btn-light" style="padding:6px 10px;font-size:11px;"><?= __('toggle') ?></button></form>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>

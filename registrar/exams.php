@@ -45,18 +45,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-if (isset($_GET['toggle_status'])) {
-    $id = (int)$_GET['toggle_status'];
-    $stmt = $pdo->prepare("SELECT status FROM exams WHERE id = ?");
-    $stmt->execute([$id]);
-    $current = $stmt->fetchColumn();
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'toggle_status') {
+    verify_csrf();
+    $id = (int)($_POST['id'] ?? 0);
+    if ($id > 0) {
+        $stmt = $pdo->prepare("SELECT status FROM exams WHERE id = ?");
+        $stmt->execute([$id]);
+        $current = $stmt->fetchColumn();
 
-    if ($current) {
-        $newStatus = $current === 'published' ? 'scheduled' : 'published';
-        $update = $pdo->prepare("UPDATE exams SET status = ? WHERE id = ?");
-        $update->execute([$newStatus, $id]);
+        if ($current) {
+            $newStatus = $current === 'published' ? 'scheduled' : 'published';
+            $update = $pdo->prepare("UPDATE exams SET status = ? WHERE id = ?");
+            $update->execute([$newStatus, $id]);
+        }
     }
-
     header('Location: exams.php');
     exit;
 }
@@ -125,7 +127,7 @@ $exams = $examStmt->fetchAll(PDO::FETCH_ASSOC);
                                         <?php endif; ?>
                                     </td>
                                     <td>
-                                        <a class="btn btn-light" style="padding:6px 10px;font-size:11px;" href="exams.php?toggle_status=<?= (int)$exam['id'] ?>"><?= __('publish_schedule') ?></a>
+                                        <form method="post" style="display:inline;"><?= csrf_field() ?><input type="hidden" name="action" value="toggle_status"><input type="hidden" name="id" value="<?= (int)$exam['id'] ?>"><button type="submit" class="btn btn-light" style="padding:6px 10px;font-size:11px;"><?= __('publish_schedule') ?></button></form>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>

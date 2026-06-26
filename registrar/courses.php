@@ -51,18 +51,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-if (isset($_GET['toggle_status'])) {
-    $id = (int)$_GET['toggle_status'];
-    $stmt = $pdo->prepare("SELECT status FROM courses WHERE id = ?");
-    $stmt->execute([$id]);
-    $currentStatus = $stmt->fetchColumn();
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'toggle_status') {
+    verify_csrf();
+    $id = (int)($_POST['id'] ?? 0);
+    if ($id > 0) {
+        $stmt = $pdo->prepare("SELECT status FROM courses WHERE id = ?");
+        $stmt->execute([$id]);
+        $currentStatus = $stmt->fetchColumn();
 
-    if ($currentStatus) {
-        $newStatus = $currentStatus === 'active' ? 'inactive' : 'active';
-        $update = $pdo->prepare("UPDATE courses SET status = ? WHERE id = ?");
-        $update->execute([$newStatus, $id]);
+        if ($currentStatus) {
+            $newStatus = $currentStatus === 'active' ? 'inactive' : 'active';
+            $update = $pdo->prepare("UPDATE courses SET status = ? WHERE id = ?");
+            $update->execute([$newStatus, $id]);
+        }
     }
-
     header('Location: courses.php');
     exit;
 }
@@ -108,7 +110,7 @@ $courses = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     </td>
                                     <td class="mono"><?= (int)$course['credits'] ?></td>
                                     <td><?= $course['status'] === 'active' ? '<span class="badge badge-green">' . __('active') . '</span>' : '<span class="badge badge-blue">' . __('inactive') . '</span>' ?></td>
-                                    <td><a href="courses.php?toggle_status=<?= (int)$course['id'] ?>" class="btn btn-light" style="padding:6px 10px;font-size:11px;"><?= __('toggle') ?></a></td>
+                                    <td><form method="post" style="display:inline;"><?= csrf_field() ?><input type="hidden" name="action" value="toggle_status"><input type="hidden" name="id" value="<?= (int)$course['id'] ?>"><button type="submit" class="btn btn-light" style="padding:6px 10px;font-size:11px;"><?= __('toggle') ?></button></form></td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
