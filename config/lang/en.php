@@ -582,4 +582,12 @@ return [
     'already_registered' => 'You are already registered for this section',
     'enrollment_not_found' => 'Enrollment record not found',
     'credit_limit_exceeded' => 'Credit limit exceeded (:max credits max)',
+
+    // Pagination
+    'date_from'                  => 'From Date',
+    'date_to'                    => 'To Date',
+    'prev_page'                  => 'Prev',
+    'next_page'                  => 'Next',
+    'results'                    => 'results',
+    'search_student_placeholder' => 'Search by student code or name…',
 ];

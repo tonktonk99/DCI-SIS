@@ -8,8 +8,59 @@ $user = getUser();
 $pageTitle = __('manage_transcripts');
 $crumb = __('office_of_registrar') . ' / ' . __('manage_transcripts');
 
-$stmt = $pdo->query("SELECT students.*, programs.program_code, programs.program_name_th, COUNT(final_grades.id) AS released_grades, COALESCE(SUM(courses.credits), 0) AS released_credits FROM students LEFT JOIN programs ON programs.id = students.program_id LEFT JOIN final_grades ON final_grades.student_id = students.id AND final_grades.status IN ('released', 'locked') LEFT JOIN sections ON sections.id = final_grades.section_id LEFT JOIN courses ON courses.id = sections.course_id GROUP BY students.id ORDER BY students.student_code ASC");
-$students = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$search  = trim($_GET['search'] ?? '');
+$page    = max(1, (int)($_GET['page'] ?? 1));
+$perPage = 50;
+
+$where  = [];
+$params = [];
+
+if ($search !== '') {
+    // Escape LIKE special chars to prevent wildcard injection
+    $safe = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $search);
+    $where[]  = '(students.student_code LIKE ? OR students.first_name LIKE ? OR students.last_name LIKE ?)';
+    $params[] = $safe . '%';        // student_code: starts-with, can use uq_students_student_code
+    $params[] = '%' . $safe . '%';  // first_name: contains (no btree index on name cols)
+    $params[] = '%' . $safe . '%';  // last_name: contains
+}
+
+$whereSql = $where ? 'WHERE ' . implode(' AND ', $where) : '';
+
+// Count query: students only — no heavy joins needed
+$cntStmt = $pdo->prepare("SELECT COUNT(*) FROM students $whereSql");
+$cntStmt->execute($params);
+$totalStudents = (int)$cntStmt->fetchColumn();
+$totalPages    = max(1, (int)ceil($totalStudents / $perPage));
+$page          = min($page, $totalPages);
+$offset        = ($page - 1) * $perPage;
+
+// LIMIT/OFFSET are int-cast, safe to interpolate
+$listSql = "
+    SELECT
+        students.id,
+        students.student_code,
+        students.first_name,
+        students.last_name,
+        students.study_status,
+        programs.program_code,
+        programs.program_name_th,
+        COUNT(final_grades.id) AS released_grades,
+        COALESCE(SUM(courses.credits), 0) AS released_credits
+    FROM students
+    LEFT JOIN programs ON programs.id = students.program_id
+    LEFT JOIN final_grades ON final_grades.student_id = students.id AND final_grades.status IN ('released', 'locked')
+    LEFT JOIN sections ON sections.id = final_grades.section_id
+    LEFT JOIN courses ON courses.id = sections.course_id
+    $whereSql
+    GROUP BY students.id
+    ORDER BY students.student_code ASC
+    LIMIT $perPage OFFSET $offset
+";
+$listStmt = $pdo->prepare($listSql);
+$listStmt->execute($params);
+$students = $listStmt->fetchAll(PDO::FETCH_ASSOC);
+
+$_pgQs = $search !== '' ? '&' . http_build_query(['search' => $search]) : '';
 ?>
 
 <?php include '../includes/header.php'; ?>
@@ -24,6 +75,15 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <div class="hero-title"><?= __('manage_transcripts') ?></div>
             <div class="hero-desc"><?= __('manage_transcripts_desc') ?></div>
         </div>
+
+        <form method="GET" action="transcripts.php" style="display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin-bottom:20px;">
+            <div style="flex:1;min-width:240px;">
+                <label style="display:block;font-size:12px;color:#8a7c5e;margin-bottom:6px;"><?= __('search') ?></label>
+                <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="<?= htmlspecialchars(__('search_student_placeholder')) ?>" style="width:100%;padding:10px;border:1px solid #d9cfb8;background:#fff;font-family:inherit;">
+            </div>
+            <button type="submit" class="btn"><?= __('filter') ?></button>
+            <a class="btn btn-light" href="transcripts.php"><?= __('reset') ?></a>
+        </form>
 
         <div class="card">
             <table class="table">
@@ -63,6 +123,24 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <?php endforeach; ?>
                 </tbody>
             </table>
+            <?php if ($totalPages > 1): ?>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding-top:16px;border-top:1px solid #e8e0cc;flex-wrap:wrap;gap:8px;">
+                <div style="font-size:13px;color:#8a7c5e;">
+                    <?= number_format($totalStudents) ?> <?= __('results') ?> &nbsp;&middot;&nbsp; <?= $page ?> / <?= $totalPages ?>
+                </div>
+                <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                    <?php if ($page > 1): ?>
+                        <a class="btn btn-light" style="padding:5px 10px;font-size:12px;" href="<?= htmlspecialchars('transcripts.php?page=' . ($page - 1) . $_pgQs) ?>">&laquo; <?= __('prev_page') ?></a>
+                    <?php endif; ?>
+                    <?php for ($p = max(1, $page - 2); $p <= min($totalPages, $page + 2); $p++): ?>
+                        <a class="btn <?= $p === $page ? '' : 'btn-light' ?>" style="padding:5px 10px;font-size:12px;" href="<?= htmlspecialchars('transcripts.php?page=' . $p . $_pgQs) ?>"><?= $p ?></a>
+                    <?php endfor; ?>
+                    <?php if ($page < $totalPages): ?>
+                        <a class="btn btn-light" style="padding:5px 10px;font-size:12px;" href="<?= htmlspecialchars('transcripts.php?page=' . ($page + 1) . $_pgQs) ?>"><?= __('next_page') ?> &raquo;</a>
+                    <?php endif; ?>
+                </div>
+            </div>
+            <?php endif; ?>
         </div>
     </div>
 </main>

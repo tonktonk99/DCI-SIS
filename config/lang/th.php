@@ -582,4 +582,12 @@ return [
     'already_registered' => 'คุณลงทะเบียน Section นี้แล้ว',
     'enrollment_not_found' => 'ไม่พบรายการลงทะเบียน',
     'credit_limit_exceeded' => 'เกินจำนวนหน่วยกิตสูงสุด (:max หน่วยกิต)',
+
+    // Pagination
+    'date_from'                  => 'ตั้งแต่วันที่',
+    'date_to'                    => 'ถึงวันที่',
+    'prev_page'                  => 'ก่อนหน้า',
+    'next_page'                  => 'ถัดไป',
+    'results'                    => 'รายการ',
+    'search_student_placeholder' => 'ค้นหารหัสนักศึกษาหรือชื่อ…',
 ];
