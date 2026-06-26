@@ -116,17 +116,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $studentId > 0) {
     }
 }
 
-function sectionInstructor(PDO $pdo, int $sectionId): string {
-    $stmt = $pdo->prepare("SELECT staff.first_name, staff.last_name FROM section_instructors JOIN staff ON staff.id = section_instructors.staff_id WHERE section_instructors.section_id = ? LIMIT 1");
-    $stmt->execute([$sectionId]);
-    $r = $stmt->fetch(PDO::FETCH_ASSOC);
-    return $r ? trim($r['first_name'] . ' ' . $r['last_name']) : '-';
+// Batch-load schedules for all section IDs → map[section_id => [rows]]
+function batchLoadSchedules(PDO $pdo, array $sectionIds): array
+{
+    $sectionIds = array_values(array_unique(array_map('intval', $sectionIds)));
+    if (!$sectionIds) return [];
+    $placeholders = implode(',', array_fill(0, count($sectionIds), '?'));
+    $stmt = $pdo->prepare("SELECT * FROM section_schedules WHERE section_id IN ($placeholders) ORDER BY section_id, FIELD(day_of_week,'Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday')");
+    $stmt->execute($sectionIds);
+    $map = [];
+    foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $map[(int)$row['section_id']][] = $row;
+    }
+    return $map;
 }
 
-function sectionScheduleArr(PDO $pdo, int $sectionId): array {
-    $stmt = $pdo->prepare("SELECT * FROM section_schedules WHERE section_id = ? ORDER BY FIELD(day_of_week,'Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday')");
-    $stmt->execute([$sectionId]);
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+// Batch-load first instructor name for all section IDs → map[section_id => 'Name']
+function batchLoadInstructors(PDO $pdo, array $sectionIds): array
+{
+    $sectionIds = array_values(array_unique(array_map('intval', $sectionIds)));
+    if (!$sectionIds) return [];
+    $placeholders = implode(',', array_fill(0, count($sectionIds), '?'));
+    $stmt = $pdo->prepare("SELECT si.section_id, s.first_name, s.last_name FROM section_instructors si JOIN staff s ON s.id = si.staff_id WHERE si.section_id IN ($placeholders) ORDER BY si.section_id, si.id ASC");
+    $stmt->execute($sectionIds);
+    $map = [];
+    foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $sid = (int)$row['section_id'];
+        if (!isset($map[$sid])) {
+            $map[$sid] = trim($row['first_name'] . ' ' . $row['last_name']);
+        }
+    }
+    return $map;
 }
 
 function sectionScheduleText(array $scheds): string {
@@ -177,6 +197,14 @@ $enrolledSectionIds = array_column($cart, 'section_id');
 $programs = $pdo->query("SELECT id, program_code, program_name_th FROM programs ORDER BY program_code")->fetchAll(PDO::FETCH_ASSOC);
 $tuitionPerCredit = 1500;
 $estimatedTuition = $cartCredits * $tuitionPerCredit;
+
+// Pre-load all schedules and instructors in 2 queries instead of N+N+M per page
+$allSectionIds = array_merge(
+    array_map('intval', array_column($catalog, 'id')),
+    array_map('intval', array_column($cart, 'section_id'))
+);
+$scheduleMap   = batchLoadSchedules($pdo, $allSectionIds);
+$instructorMap = batchLoadInstructors($pdo, array_map('intval', array_column($catalog, 'id')));
 ?>
 
 <?php include '../includes/header.php'; ?>
@@ -259,16 +287,16 @@ $estimatedTuition = $cartCredits * $tuitionPerCredit;
                     $isEnrolled = in_array($secId, $enrolledSectionIds);
                     $remaining = (int)$sec['capacity'] - (int)$sec['enrolled_count'];
                     $isFull = $remaining <= 0;
-                    $scheds = sectionScheduleArr($pdo, $secId);
+                    $scheds = $scheduleMap[$secId] ?? [];
                     $schedText = sectionScheduleText($scheds);
-                    $instructor = sectionInstructor($pdo, $secId);
+                    $instructor = $instructorMap[$secId] ?? '-';
 
                     $hasConflict = false;
                     $conflictWith = '';
                     if (!$isEnrolled) {
                         foreach ($scheds as $ns) {
                             foreach ($cart as $ce) {
-                                $ceScheds = sectionScheduleArr($pdo, (int)$ce['section_id']);
+                                $ceScheds = $scheduleMap[(int)$ce['section_id']] ?? [];
                                 foreach ($ceScheds as $es) {
                                     if ($ns['day_of_week'] === $es['day_of_week'] && $ns['start_time'] < $es['end_time'] && $ns['end_time'] > $es['start_time']) {
                                         $hasConflict = true;
@@ -348,7 +376,7 @@ $estimatedTuition = $cartCredits * $tuitionPerCredit;
                     <?php endif; ?>
 
                     <?php foreach ($cart as $item):
-                        $itemScheds = sectionScheduleArr($pdo, (int)$item['section_id']);
+                        $itemScheds = $scheduleMap[(int)$item['section_id']] ?? [];
                         $itemSchedText = sectionScheduleText($itemScheds);
                     ?>
                         <div class="list-item">
