@@ -9,11 +9,9 @@ $pageTitle = __('transcript_title');
 $crumb = __('transcript_title');
 $message = '';
 
-$stmt = $pdo->prepare("SELECT students.*, programs.program_code, programs.program_name_th, programs.program_name_en FROM students LEFT JOIN programs ON programs.id = students.program_id WHERE students.user_id = ? LIMIT 1");
-$stmt->execute([(int)$user['id']]);
-$student = $stmt->fetch(PDO::FETCH_ASSOC);
-
-$studentId = $student ? (int)$student['id'] : 0;
+require_once '../includes/IdentityRepository.php';
+$student = (new IdentityRepository($pdo))->resolveStudentForUser((int)$user['id']);
+$studentId = (int)($student['id'] ?? 0);
 $grades = [];
 
 if ($studentId > 0) {

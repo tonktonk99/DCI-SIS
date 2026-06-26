@@ -5,15 +5,12 @@ require '../config/database.php';
 requireRole('student');
 $user = getUser();
 
-$stmt = $pdo->prepare("SELECT students.*, programs.program_code, programs.program_name_th, programs.program_name_en FROM students LEFT JOIN programs ON programs.id = students.program_id WHERE students.user_id = ? LIMIT 1");
-$stmt->execute([(int)$user['id']]);
-$student = $stmt->fetch(PDO::FETCH_ASSOC);
-
+require_once '../includes/IdentityRepository.php';
+$student = (new IdentityRepository($pdo))->resolveStudentForUser((int)$user['id']);
 if (!$student) {
     die('Student profile not found');
 }
-
-$studentId = (int)$student['id'];
+$studentId = (int)($student['id'] ?? 0);
 
 $gradeStmt = $pdo->prepare("SELECT final_grades.*, courses.course_code, courses.course_name_th, courses.course_name_en, courses.credits, sections.section_number, semesters.id AS semester_id, semesters.semester_name FROM final_grades JOIN sections ON sections.id = final_grades.section_id JOIN courses ON courses.id = sections.course_id JOIN semesters ON semesters.id = sections.semester_id WHERE final_grades.student_id = ? AND final_grades.status IN ('released', 'locked') ORDER BY semesters.id ASC, courses.course_code ASC");
 $gradeStmt->execute([$studentId]);
