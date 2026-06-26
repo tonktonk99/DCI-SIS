@@ -19,6 +19,7 @@ $staffStmt = $pdo->query("SELECT * FROM staff WHERE status = 'active' ORDER BY f
 $staffList = $staffStmt->fetchAll(PDO::FETCH_ASSOC);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf();
     $semester_id = (int)($_POST['semester_id'] ?? 0);
     $course_id = (int)($_POST['course_id'] ?? 0);
     $section_number = trim($_POST['section_number'] ?? '');
@@ -191,6 +192,7 @@ function sectionScheduleText(PDO $pdo, int $sectionId): string
                 <h3 class="section-title"><?= __('add_section') ?></h3>
                 <div class="card">
                     <form method="POST" action="sections.php">
+                        <?= csrf_field() ?>
                         <div style="margin-bottom:14px;">
                             <label style="display:block;font-size:12px;color:#8a7c5e;margin-bottom:6px;"><?= __('semester') ?></label>
                             <select name="semester_id" required style="width:100%;padding:10px;border:1px solid #d9cfb8;background:#fff;font-family:inherit;">

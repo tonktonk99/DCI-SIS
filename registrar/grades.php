@@ -12,6 +12,7 @@ $message = '';
 $currentUserId = (int)$user['id'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf();
     $action = $_POST['action'] ?? '';
     $finalGradeId = (int)($_POST['final_grade_id'] ?? 0);
 
@@ -161,13 +162,13 @@ foreach ($countStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
                             <td>
                                 <div style="display:flex;gap:6px;flex-wrap:wrap;">
                                     <?php if ($grade['status'] === 'submitted' || $grade['status'] === 'returned'): ?>
-                                        <form method="POST" action="grades.php" style="margin:0;"><input type="hidden" name="action" value="release"><input type="hidden" name="final_grade_id" value="<?= (int)$grade['id'] ?>"><button class="btn" style="padding:6px 10px;font-size:11px;" type="submit"><?= __('release') ?></button></form>
+                                        <form method="POST" action="grades.php" style="margin:0;"><?= csrf_field() ?><input type="hidden" name="action" value="release"><input type="hidden" name="final_grade_id" value="<?= (int)$grade['id'] ?>"><button class="btn" style="padding:6px 10px;font-size:11px;" type="submit"><?= __('release') ?></button></form>
                                     <?php endif; ?>
                                     <?php if ($grade['status'] === 'submitted'): ?>
-                                        <form method="POST" action="grades.php" style="margin:0;"><input type="hidden" name="action" value="return"><input type="hidden" name="final_grade_id" value="<?= (int)$grade['id'] ?>"><button class="btn btn-light" style="padding:6px 10px;font-size:11px;" type="submit"><?= __('return_grade') ?></button></form>
+                                        <form method="POST" action="grades.php" style="margin:0;"><?= csrf_field() ?><input type="hidden" name="action" value="return"><input type="hidden" name="final_grade_id" value="<?= (int)$grade['id'] ?>"><button class="btn btn-light" style="padding:6px 10px;font-size:11px;" type="submit"><?= __('return_grade') ?></button></form>
                                     <?php endif; ?>
                                     <?php if ($grade['status'] === 'released'): ?>
-                                        <form method="POST" action="grades.php" style="margin:0;"><input type="hidden" name="action" value="lock"><input type="hidden" name="final_grade_id" value="<?= (int)$grade['id'] ?>"><button class="btn btn-light" style="padding:6px 10px;font-size:11px;" type="submit"><?= __('lock') ?></button></form>
+                                        <form method="POST" action="grades.php" style="margin:0;"><?= csrf_field() ?><input type="hidden" name="action" value="lock"><input type="hidden" name="final_grade_id" value="<?= (int)$grade['id'] ?>"><button class="btn btn-light" style="padding:6px 10px;font-size:11px;" type="submit"><?= __('lock') ?></button></form>
                                     <?php endif; ?>
                                 </div>
                             </td>

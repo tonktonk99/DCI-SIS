@@ -13,6 +13,7 @@ $userStmt = $pdo->query("SELECT id, username FROM users WHERE role = 'professor'
 $professorUsers = $userStmt->fetchAll(PDO::FETCH_ASSOC);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf();
     $user_id = (int)($_POST['user_id'] ?? 0);
     $staff_code = trim($_POST['staff_code'] ?? '');
     $first_name = trim($_POST['first_name'] ?? '');
@@ -74,6 +75,7 @@ $staffList = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <?php foreach ($staffList as $staff): ?><tr><td class="mono"><?= htmlspecialchars($staff['staff_code']) ?></td><td><?= htmlspecialchars($staff['first_name'] . ' ' . $staff['last_name']) ?></td><td><?= htmlspecialchars($staff['username'] ?? '-') ?></td><td><?= htmlspecialchars($staff['position'] ?? '-') ?></td><td><?= $staff['status'] === 'active' ? '<span class="badge badge-green">' . __('active') . '</span>' : '<span class="badge badge-blue">' . __('inactive') . '</span>' ?></td><td><a href="professors.php?toggle_status=<?= (int)$staff['id'] ?>" class="btn btn-light" style="padding:6px 10px;font-size:11px;"><?= __('toggle') ?></a></td></tr><?php endforeach; ?>
             </tbody></table></div></div>
             <div><h3 class="section-title"><?= __('add_professor') ?></h3><div class="card"><form method="POST" action="professors.php">
+                <?= csrf_field() ?>
                 <div style="margin-bottom:14px;"><label style="display:block;font-size:12px;color:#8a7c5e;margin-bottom:6px;"><?= __('user_account') ?></label><select name="user_id" style="width:100%;padding:10px;border:1px solid #d9cfb8;background:#fff;font-family:inherit;"><option value=""><?= __('no_linked_account') ?></option><?php foreach ($professorUsers as $professorUser): ?><option value="<?= (int)$professorUser['id'] ?>"><?= htmlspecialchars($professorUser['username']) ?></option><?php endforeach; ?></select></div>
                 <div style="margin-bottom:14px;"><label style="display:block;font-size:12px;color:#8a7c5e;margin-bottom:6px;"><?= __('professor_code') ?></label><input type="text" name="staff_code" required style="width:100%;padding:10px;border:1px solid #d9cfb8;background:#fff;font-family:inherit;"></div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;"><div><label style="display:block;font-size:12px;color:#8a7c5e;margin-bottom:6px;"><?= __('first_name') ?></label><input type="text" name="first_name" required style="width:100%;padding:10px;border:1px solid #d9cfb8;background:#fff;font-family:inherit;"></div><div><label style="display:block;font-size:12px;color:#8a7c5e;margin-bottom:6px;"><?= __('last_name') ?></label><input type="text" name="last_name" required style="width:100%;padding:10px;border:1px solid #d9cfb8;background:#fff;font-family:inherit;"></div></div>

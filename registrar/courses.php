@@ -13,6 +13,7 @@ $programStmt = $pdo->query("SELECT * FROM programs WHERE status = 'active' ORDER
 $programs = $programStmt->fetchAll(PDO::FETCH_ASSOC);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf();
     $program_id = (int)($_POST['program_id'] ?? 0);
     $course_code = trim($_POST['course_code'] ?? '');
     $course_name_th = trim($_POST['course_name_th'] ?? '');
@@ -119,6 +120,7 @@ $courses = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <h3 class="section-title"><?= __('add_course') ?></h3>
                 <div class="card">
                     <form method="POST" action="courses.php">
+                        <?= csrf_field() ?>
                         <div style="margin-bottom:14px;"><label style="display:block;font-size:12px;color:#8a7c5e;margin-bottom:6px;"><?= __('program_label') ?></label><select name="program_id" style="width:100%;padding:10px;border:1px solid #d9cfb8;background:#fff;font-family:inherit;"><option value=""><?= __('no_program_specified') ?></option><?php foreach ($programs as $program): ?><option value="<?= (int)$program['id'] ?>"><?= htmlspecialchars($program['program_code']) ?> - <?= htmlspecialchars($program['program_name_th']) ?></option><?php endforeach; ?></select></div>
                         <div style="margin-bottom:14px;"><label style="display:block;font-size:12px;color:#8a7c5e;margin-bottom:6px;"><?= __('course_code') ?></label><input type="text" name="course_code" placeholder="<?= __('placeholder_course_code') ?>" required style="width:100%;padding:10px;border:1px solid #d9cfb8;background:#fff;font-family:inherit;"></div>
                         <div style="margin-bottom:14px;"><label style="display:block;font-size:12px;color:#8a7c5e;margin-bottom:6px;"><?= __('course_name_th') ?></label><input type="text" name="course_name_th" required style="width:100%;padding:10px;border:1px solid #d9cfb8;background:#fff;font-family:inherit;"></div>

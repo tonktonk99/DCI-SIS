@@ -13,6 +13,7 @@ $sectionStmt = $pdo->query("SELECT sections.id, sections.section_number, section
 $sections = $sectionStmt->fetchAll(PDO::FETCH_ASSOC);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf();
     $section_id = (int)($_POST['section_id'] ?? 0);
     $exam_type = trim($_POST['exam_type'] ?? '');
     $exam_title = trim($_POST['exam_title'] ?? '');
@@ -137,6 +138,7 @@ $exams = $examStmt->fetchAll(PDO::FETCH_ASSOC);
                 <h3 class="section-title"><?= __('add_exam') ?></h3>
                 <div class="card">
                     <form method="POST" action="exams.php">
+                        <?= csrf_field() ?>
                         <div style="margin-bottom:14px;">
                             <label style="display:block;font-size:12px;color:#8a7c5e;margin-bottom:6px;"><?= __('section') ?></label>
                             <select name="section_id" required style="width:100%;padding:10px;border:1px solid #d9cfb8;background:#fff;font-family:inherit;">

@@ -11,6 +11,7 @@ $crumb = __('office_of_registrar') . ' / ' . __('academic_setup');
 $message = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf();
     $year_label = trim($_POST['year_label'] ?? '');
     $start_date = $_POST['start_date'] ?? null;
     $end_date = $_POST['end_date'] ?? null;
@@ -151,6 +152,7 @@ $years = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                 <div class="card">
                     <form method="post" action="academic-years.php">
+                        <?= csrf_field() ?>
 
                         <div style="margin-bottom:14px;">
                             <label style="display:block;font-size:12px;color:#8a7c5e;margin-bottom:6px;">

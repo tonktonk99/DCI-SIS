@@ -18,6 +18,7 @@ $yearStmt = $pdo->query("
 $academicYears = $yearStmt->fetchAll(PDO::FETCH_ASSOC);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf();
     $academic_year_id = (int)($_POST['academic_year_id'] ?? 0);
     $semester_name = trim($_POST['semester_name'] ?? '');
     $term = trim($_POST['term'] ?? '');
@@ -197,6 +198,7 @@ $semesters = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                 <div class="card">
                     <form method="POST" action="semesters.php">
+                        <?= csrf_field() ?>
 
                         <div style="margin-bottom:14px;">
                             <label style="display:block;font-size:12px;color:#8a7c5e;margin-bottom:6px;">

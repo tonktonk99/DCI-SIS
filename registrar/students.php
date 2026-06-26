@@ -16,6 +16,7 @@ $programStmt = $pdo->query("SELECT * FROM programs WHERE status = 'active' ORDER
 $programs = $programStmt->fetchAll(PDO::FETCH_ASSOC);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf();
     $user_id = (int)($_POST['user_id'] ?? 0);
     $student_code = trim($_POST['student_code'] ?? '');
     $program_id = (int)($_POST['program_id'] ?? 0);
@@ -102,6 +103,7 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <div>
                 <h3 class="section-title"><?= __('add_student') ?></h3>
                 <div class="card"><form method="POST" action="students.php">
+                    <?= csrf_field() ?>
                     <div style="margin-bottom:14px;"><label style="display:block;font-size:12px;color:#8a7c5e;margin-bottom:6px;"><?= __('user_account') ?></label><select name="user_id" style="width:100%;padding:10px;border:1px solid #d9cfb8;background:#fff;font-family:inherit;"><option value=""><?= __('no_linked_account') ?></option><?php foreach ($studentUsers as $studentUser): ?><option value="<?= (int)$studentUser['id'] ?>"><?= htmlspecialchars($studentUser['username']) ?></option><?php endforeach; ?></select></div>
                     <div style="margin-bottom:14px;"><label style="display:block;font-size:12px;color:#8a7c5e;margin-bottom:6px;"><?= __('student_id_label') ?></label><input type="text" name="student_code" required style="width:100%;padding:10px;border:1px solid #d9cfb8;background:#fff;font-family:inherit;"></div>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;"><div><label style="display:block;font-size:12px;color:#8a7c5e;margin-bottom:6px;"><?= __('first_name') ?></label><input type="text" name="first_name" required style="width:100%;padding:10px;border:1px solid #d9cfb8;background:#fff;font-family:inherit;"></div><div><label style="display:block;font-size:12px;color:#8a7c5e;margin-bottom:6px;"><?= __('last_name') ?></label><input type="text" name="last_name" required style="width:100%;padding:10px;border:1px solid #d9cfb8;background:#fff;font-family:inherit;"></div></div>

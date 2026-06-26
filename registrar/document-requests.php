@@ -12,6 +12,7 @@ $message = '';
 $currentUserId = (int)$user['id'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf();
     $requestId = (int)($_POST['request_id'] ?? 0);
     $action = $_POST['action'] ?? '';
 
@@ -125,9 +126,9 @@ foreach ($countStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
                             </td>
                             <td>
                                 <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                                    <form method="POST" action="document-requests.php" style="margin:0;"><input type="hidden" name="request_id" value="<?= (int)$request['id'] ?>"><input type="hidden" name="action" value="process"><button type="submit" class="btn btn-light" style="padding:6px 10px;font-size:11px;"><?= __('process_action') ?></button></form>
-                                    <form method="POST" action="document-requests.php" style="margin:0;"><input type="hidden" name="request_id" value="<?= (int)$request['id'] ?>"><input type="hidden" name="action" value="complete"><button type="submit" class="btn" style="padding:6px 10px;font-size:11px;"><?= __('complete_action') ?></button></form>
-                                    <form method="POST" action="document-requests.php" style="margin:0;"><input type="hidden" name="request_id" value="<?= (int)$request['id'] ?>"><input type="hidden" name="action" value="reject"><button type="submit" class="btn btn-light" style="padding:6px 10px;font-size:11px;"><?= __('reject_action') ?></button></form>
+                                    <form method="POST" action="document-requests.php" style="margin:0;"><?= csrf_field() ?><input type="hidden" name="request_id" value="<?= (int)$request['id'] ?>"><input type="hidden" name="action" value="process"><button type="submit" class="btn btn-light" style="padding:6px 10px;font-size:11px;"><?= __('process_action') ?></button></form>
+                                    <form method="POST" action="document-requests.php" style="margin:0;"><?= csrf_field() ?><input type="hidden" name="request_id" value="<?= (int)$request['id'] ?>"><input type="hidden" name="action" value="complete"><button type="submit" class="btn" style="padding:6px 10px;font-size:11px;"><?= __('complete_action') ?></button></form>
+                                    <form method="POST" action="document-requests.php" style="margin:0;"><?= csrf_field() ?><input type="hidden" name="request_id" value="<?= (int)$request['id'] ?>"><input type="hidden" name="action" value="reject"><button type="submit" class="btn btn-light" style="padding:6px 10px;font-size:11px;"><?= __('reject_action') ?></button></form>
                                 </div>
                             </td>
                         </tr>

@@ -10,6 +10,7 @@ $crumb = __('office_of_registrar') . ' / ' . __('academic_setup');
 $message = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf();
     $program_code = trim($_POST['program_code'] ?? '');
     $program_name_th = trim($_POST['program_name_th'] ?? '');
     $program_name_en = trim($_POST['program_name_en'] ?? '');
@@ -131,6 +132,7 @@ $programs = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <h3 class="section-title"><?= __('add_program') ?></h3>
                 <div class="card">
                     <form method="POST" action="programs.php">
+                        <?= csrf_field() ?>
                         <div style="margin-bottom:14px;">
                             <label style="display:block;font-size:12px;color:#8a7c5e;margin-bottom:6px;"><?= __('program_code_label') ?></label>
                             <input type="text" name="program_code" placeholder="<?= __('placeholder_program_code') ?>" required style="width:100%;padding:10px;border:1px solid #d9cfb8;background:#fff;font-family:inherit;">
