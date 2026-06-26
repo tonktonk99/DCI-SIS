@@ -1,6 +1,7 @@
 <?php
 require __DIR__ . '/config/session.php';
 require __DIR__ . '/includes/lang.php';
+require __DIR__ . '/includes/csrf.php';
 
 if (isset($_SESSION['user'])) {
     $role = $_SESSION['user']['role'] ?? '';
@@ -498,6 +499,7 @@ $hasError = isset($_GET['error']);
                 <?php endif; ?>
 
                 <form method="POST" action="actions/login-action.php" autocomplete="on">
+                    <?= csrf_field() ?>
                     <div class="field">
                         <label for="username"><?= __('username') ?></label>
                         <input id="username" type="text" name="username" required autofocus placeholder="admin">

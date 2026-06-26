@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../config/session.php';
 require_once __DIR__ . '/lang.php';
+require_once __DIR__ . '/csrf.php';
 
 function checkLogin(): void
 {

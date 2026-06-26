@@ -2,11 +2,14 @@
 require '../config/session.php';
 require '../config/database.php';
 require '../includes/audit.php';
+require '../includes/csrf.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: ' . APP_BASE . '/login.php');
     exit;
 }
+
+verify_csrf();
 
 $username = trim($_POST['username'] ?? '');
 $passwordInput = $_POST['password'] ?? '';
