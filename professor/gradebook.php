@@ -97,6 +97,10 @@ if ($selectedSectionId === 0 && count($sections) > 0) {
 
 $canUseSelectedSection = $selectedSectionId > 0 && $staffId > 0 && verifySectionOwner($pdo, $selectedSectionId, $staffId);
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf();
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add_item') {
     if (!$canUseSelectedSection) {
         $message = __('no_permission_section');
@@ -273,6 +277,7 @@ foreach ($gradeItems as $item) {
                     <h3 class="section-title"><?= __('score_table') ?></h3>
                     <div class="card" style="overflow-x:auto;">
                         <form method="POST" action="gradebook.php">
+                            <?= csrf_field() ?>
                             <input type="hidden" name="action" value="save_scores">
                             <input type="hidden" name="section_id" value="<?= (int)$selectedSectionId ?>">
 
@@ -336,6 +341,7 @@ foreach ($gradeItems as $item) {
                     <h3 class="section-title"><?= __('add_grade_item') ?></h3>
                     <div class="card">
                         <form method="POST" action="gradebook.php">
+                            <?= csrf_field() ?>
                             <input type="hidden" name="action" value="add_item">
                             <input type="hidden" name="section_id" value="<?= (int)$selectedSectionId ?>">
 
@@ -370,6 +376,7 @@ foreach ($gradeItems as $item) {
                             <?= __('submit_final_desc') ?>
                         </p>
                         <form method="POST" action="gradebook.php">
+                            <?= csrf_field() ?>
                             <input type="hidden" name="action" value="submit_final">
                             <input type="hidden" name="section_id" value="<?= (int)$selectedSectionId ?>">
                             <button type="submit" class="btn"><?= __('submit_final_grades') ?></button>

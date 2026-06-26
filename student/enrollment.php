@@ -30,6 +30,7 @@ if ($currentSem) {
 $maxCredits = 22;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $studentId > 0) {
+    verify_csrf();
     $action = $_POST['action'] ?? '';
 
     if ($action === 'enroll' && $regOpen) {
@@ -316,12 +317,14 @@ $estimatedTuition = $cartCredits * $tuitionPerCredit;
                                     <span class="badge badge-red" style="font-size:11px;"><?= __('registration_closed') ?></span>
                                 <?php elseif ($hasConflict): ?>
                                     <form method="POST" style="margin:0;">
+                                        <?= csrf_field() ?>
                                         <input type="hidden" name="action" value="enroll">
                                         <input type="hidden" name="section_id" value="<?= $secId ?>">
                                         <button type="submit" class="btn" style="padding:6px 14px;font-size:12px;background:#c89028;" onclick="return confirm('<?= __('confirm_conflict', ['course' => $conflictWith]) ?>')"><?= __('add_course') ?></button>
                                     </form>
                                 <?php else: ?>
                                     <form method="POST" style="margin:0;">
+                                        <?= csrf_field() ?>
                                         <input type="hidden" name="action" value="enroll">
                                         <input type="hidden" name="section_id" value="<?= $secId ?>">
                                         <button type="submit" class="btn" style="padding:6px 14px;font-size:12px;"><?= __('add_course') ?></button>
@@ -359,6 +362,7 @@ $estimatedTuition = $cartCredits * $tuitionPerCredit;
                                 </div>
                                 <?php if ($regOpen): ?>
                                     <form method="POST" style="margin:0;">
+                                        <?= csrf_field() ?>
                                         <input type="hidden" name="action" value="drop">
                                         <input type="hidden" name="enrollment_id" value="<?= (int)$item['id'] ?>">
                                         <button type="submit" class="btn btn-light" style="padding:4px 10px;font-size:11px;color:var(--crimson);" onclick="return confirm('<?= __('confirm_withdraw', ['course' => $item['course_code']]) ?>')">✕</button>

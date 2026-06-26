@@ -14,6 +14,7 @@ $allowedRoles = ['admin', 'registrar', 'professor', 'student', 'alumni'];
 $currentUserId = (int)$user['id'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf();
     $action = $_POST['action'] ?? '';
 
     if ($action === 'create') {
@@ -168,6 +169,7 @@ foreach ($countStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
                                     <td class="mono"><?= htmlspecialchars($row['created_at'] ?? '-') ?></td>
                                     <td>
                                         <form method="POST" action="users.php" style="display:flex;gap:6px;margin:0;">
+                                            <?= csrf_field() ?>
                                             <input type="hidden" name="action" value="change_role">
                                             <input type="hidden" name="user_id" value="<?= (int)$row['id'] ?>">
                                             <select name="role" style="padding:6px;border:1px solid #d9cfb8;background:#fff;font-family:inherit;">
@@ -180,6 +182,7 @@ foreach ($countStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
                                     </td>
                                     <td>
                                         <form method="POST" action="users.php" style="display:flex;gap:6px;margin:0;">
+                                            <?= csrf_field() ?>
                                             <input type="hidden" name="action" value="reset_password">
                                             <input type="hidden" name="user_id" value="<?= (int)$row['id'] ?>">
                                             <input type="text" name="new_password" placeholder="<?= __('new_password_placeholder') ?>" style="width:120px;padding:6px;border:1px solid #d9cfb8;background:#fff;font-family:inherit;">
@@ -197,6 +200,7 @@ foreach ($countStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
                 <h3 class="section-title"><?= __('create_new_user') ?></h3>
                 <div class="card">
                     <form method="POST" action="users.php">
+                        <?= csrf_field() ?>
                         <input type="hidden" name="action" value="create">
 
                         <div style="margin-bottom:14px;">
