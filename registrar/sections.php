@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $section_number = trim($_POST['section_number'] ?? '');
     $capacity = (int)($_POST['capacity'] ?? 0);
     $room_name = trim($_POST['room_name'] ?? '');
-    $status = $_POST['status'] ?? 'active';
+    $status = input_enum($_POST, 'status', ['active', 'inactive'], 'active');
     $staff_id = (int)($_POST['staff_id'] ?? 0);
     $day_of_week = trim($_POST['day_of_week'] ?? '');
     $start_time = trim($_POST['start_time'] ?? '');

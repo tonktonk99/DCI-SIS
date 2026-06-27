@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $program_name_th = trim($_POST['program_name_th'] ?? '');
     $program_name_en = trim($_POST['program_name_en'] ?? '');
     $degree_level = trim($_POST['degree_level'] ?? '');
-    $status = $_POST['status'] ?? 'active';
+    $status = input_enum($_POST, 'status', ['active', 'inactive'], 'active');
 
     if ($program_code === '' || $program_name_th === '') {
         $message = __('fill_program_code_name');

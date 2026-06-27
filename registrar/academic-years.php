@@ -13,8 +13,8 @@ $message = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
     $year_label = trim($_POST['year_label'] ?? '');
-    $start_date = $_POST['start_date'] ?? null;
-    $end_date = $_POST['end_date'] ?? null;
+    $start_date = input_date($_POST, 'start_date');
+    $end_date   = input_date($_POST, 'end_date');
     $is_current = isset($_POST['is_current']) ? 1 : 0;
 
     if ($year_label === '') {

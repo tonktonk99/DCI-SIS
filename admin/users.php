@@ -15,7 +15,7 @@ $currentUserId = (int)$user['id'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
-    $action = $_POST['action'] ?? '';
+    $action = input_enum($_POST, 'action', ['create', 'change_role', 'reset_password'], '');
 
     if ($action === 'create') {
         $username = trim($_POST['username'] ?? '');

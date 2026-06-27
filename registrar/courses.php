@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $course_name_en = trim($_POST['course_name_en'] ?? '');
     $credits = (int)($_POST['credits'] ?? 0);
     $description = trim($_POST['description'] ?? '');
-    $status = $_POST['status'] ?? 'active';
+    $status = input_enum($_POST, 'status', ['active', 'inactive'], 'active');
 
     if ($course_code === '' || $course_name_th === '') {
         $message = __('fill_course_code_name');

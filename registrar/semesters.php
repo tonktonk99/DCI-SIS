@@ -22,12 +22,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $academic_year_id = (int)($_POST['academic_year_id'] ?? 0);
     $semester_name = trim($_POST['semester_name'] ?? '');
     $term = trim($_POST['term'] ?? '');
-    $start_date = $_POST['start_date'] ?? null;
-    $end_date = $_POST['end_date'] ?? null;
-    $registration_start = $_POST['registration_start'] ?? null;
-    $registration_end = $_POST['registration_end'] ?? null;
-    $grade_release_date = $_POST['grade_release_date'] ?? null;
-    $status = $_POST['status'] ?? 'upcoming';
+    $start_date         = input_date($_POST, 'start_date');
+    $end_date           = input_date($_POST, 'end_date');
+    $registration_start = input_date($_POST, 'registration_start');
+    $registration_end   = input_date($_POST, 'registration_end');
+    $grade_release_date = input_date($_POST, 'grade_release_date');
+    $status             = input_enum($_POST, 'status', ['upcoming', 'active', 'completed'], 'upcoming');
     $is_current = isset($_POST['is_current']) ? 1 : 0;
 
     if ($academic_year_id <= 0 || $semester_name === '' || $term === '') {

@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $first_name = trim($_POST['first_name'] ?? '');
     $last_name = trim($_POST['last_name'] ?? '');
     $admission_year = trim($_POST['admission_year'] ?? '');
-    $study_status = $_POST['study_status'] ?? 'studying';
+    $study_status = input_enum($_POST, 'study_status', ['studying', 'leave', 'graduated', 'withdrawn', 'suspended'], 'studying');
     $cumulative_gpa = (float)($_POST['cumulative_gpa'] ?? 0);
     $total_credits_earned = (int)($_POST['total_credits_earned'] ?? 0);
 

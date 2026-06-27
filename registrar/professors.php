@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $first_name = trim($_POST['first_name'] ?? '');
     $last_name = trim($_POST['last_name'] ?? '');
     $position = trim($_POST['position'] ?? '');
-    $status = $_POST['status'] ?? 'active';
+    $status = input_enum($_POST, 'status', ['active', 'inactive'], 'active');
 
     if ($staff_code === '' || $first_name === '' || $last_name === '') {
         $message = __('fill_professor_code_name');

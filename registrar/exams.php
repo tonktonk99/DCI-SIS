@@ -15,14 +15,14 @@ $sections = $sectionStmt->fetchAll(PDO::FETCH_ASSOC);
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
     $section_id = (int)($_POST['section_id'] ?? 0);
-    $exam_type = trim($_POST['exam_type'] ?? '');
+    $exam_type  = input_enum($_POST, 'exam_type', ['midterm', 'final', 'quiz', 'oral', 'other'], '');
     $exam_title = trim($_POST['exam_title'] ?? '');
-    $exam_date = $_POST['exam_date'] ?? null;
+    $exam_date  = input_date($_POST, 'exam_date');
     $start_time = $_POST['start_time'] ?? null;
-    $end_time = $_POST['end_time'] ?? null;
-    $room_name = trim($_POST['room_name'] ?? '');
-    $max_score = (float)($_POST['max_score'] ?? 100);
-    $status = $_POST['status'] ?? 'scheduled';
+    $end_time   = $_POST['end_time'] ?? null;
+    $room_name  = trim($_POST['room_name'] ?? '');
+    $max_score  = (float)($_POST['max_score'] ?? 100);
+    $status     = input_enum($_POST, 'status', ['scheduled', 'published'], 'scheduled');
 
     if ($section_id <= 0 || $exam_type === '' || $exam_title === '' || !$exam_date) {
         $message = __('fill_exam_fields');

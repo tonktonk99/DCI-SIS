@@ -11,9 +11,9 @@ $message = '';
 $defaultType = basename($_SERVER['PHP_SELF']) === 'certificate-request.php' ? 'certificate' : 'transcript';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $requestType = trim($_POST['request_type'] ?? $defaultType);
-    $purpose = trim($_POST['purpose'] ?? '');
-    $deliveryMethod = trim($_POST['delivery_method'] ?? '');
+    $requestType    = input_enum($_POST, 'request_type', ['transcript', 'certificate'], $defaultType);
+    $purpose        = trim($_POST['purpose'] ?? '');
+    $deliveryMethod = input_enum($_POST, 'delivery_method', ['pickup', 'email_pdf', 'postal_mail'], '');
     $note = trim($_POST['note'] ?? '');
 
     if ($requestType === '' || $purpose === '' || $deliveryMethod === '') {
