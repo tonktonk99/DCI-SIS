@@ -84,6 +84,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $studentId > 0) {
                 $pdo->commit();
                 $message = __('success_registered', ['course' => $sec['course_code']]);
                 $messageType = 'success';
+            } catch (PDOException $e) {
+                if ($pdo->inTransaction()) $pdo->rollBack();
+                error_log('[enrollment] enroll: ' . $e->getMessage());
+                $message = __('unexpected_error');
+                $messageType = 'error';
             } catch (Exception $e) {
                 if ($pdo->inTransaction()) $pdo->rollBack();
                 $message = $e->getMessage();
@@ -107,6 +112,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $studentId > 0) {
                 $pdo->commit();
                 $message = __('success_withdrawn');
                 $messageType = 'success';
+            } catch (PDOException $e) {
+                if ($pdo->inTransaction()) $pdo->rollBack();
+                error_log('[enrollment] drop: ' . $e->getMessage());
+                $message = __('unexpected_error');
+                $messageType = 'error';
             } catch (Exception $e) {
                 if ($pdo->inTransaction()) $pdo->rollBack();
                 $message = $e->getMessage();

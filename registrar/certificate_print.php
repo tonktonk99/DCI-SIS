@@ -8,7 +8,7 @@ $user = getUser();
 $studentId = (int)($_GET['student_id'] ?? 0);
 
 if ($studentId <= 0) {
-    die('Missing student_id');
+    abort_400('Missing student_id parameter');
 }
 
 $stmt = $pdo->prepare("SELECT students.*, programs.program_code, programs.program_name_th, programs.program_name_en FROM students LEFT JOIN programs ON programs.id = students.program_id WHERE students.id = ? LIMIT 1");
@@ -16,7 +16,7 @@ $stmt->execute([$studentId]);
 $student = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$student) {
-    die('Student not found');
+    abort_404('Student not found');
 }
 
 $issueDate = date('Y-m-d');

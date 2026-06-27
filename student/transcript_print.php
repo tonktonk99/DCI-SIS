@@ -8,7 +8,7 @@ $user = getUser();
 require_once '../includes/IdentityRepository.php';
 $student = (new IdentityRepository($pdo))->resolveStudentForUser((int)$user['id']);
 if (!$student) {
-    die('Student profile not found');
+    abort_404('Student profile not found');
 }
 $studentId = (int)($student['id'] ?? 0);
 

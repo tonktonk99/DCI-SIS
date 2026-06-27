@@ -590,4 +590,8 @@ return [
     'next_page'                  => 'Next',
     'results'                    => 'results',
     'search_student_placeholder' => 'Search by student code or name…',
+
+    // Generic error messages
+    'save_failed'      => 'Save failed. Please try again.',
+    'unexpected_error' => 'An unexpected error occurred. Please try again.',
 ];

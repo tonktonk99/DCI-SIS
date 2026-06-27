@@ -67,10 +67,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save_
         $pdo->commit();
         header('Location: exams.php?exam_id=' . $selectedExamId);
         exit;
+    } catch (PDOException $e) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
+        error_log('[exams] save_scores: ' . $e->getMessage());
+        $message = __('unexpected_error');
     } catch (Exception $e) {
-        if ($pdo->inTransaction()) {
-            $pdo->rollBack();
-        }
+        if ($pdo->inTransaction()) $pdo->rollBack();
         $message = $e->getMessage();
     }
 }

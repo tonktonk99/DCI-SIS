@@ -172,13 +172,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save_
             }
 
             $pdo->commit();
+            header('Location: gradebook.php?section_id=' . $selectedSectionId);
+            exit;
         } catch (Throwable $e) {
             if ($pdo->inTransaction()) $pdo->rollBack();
-            throw $e;
+            error_log('[gradebook] save_scores: ' . $e->getMessage());
+            $message = __('save_failed');
         }
-
-        header('Location: gradebook.php?section_id=' . $selectedSectionId);
-        exit;
     }
 }
 
@@ -223,13 +223,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'submi
             }
 
             $pdo->commit();
+            header('Location: gradebook.php?section_id=' . $selectedSectionId);
+            exit;
         } catch (Throwable $e) {
             if ($pdo->inTransaction()) $pdo->rollBack();
-            throw $e;
+            error_log('[gradebook] submit_final: ' . $e->getMessage());
+            $message = __('save_failed');
         }
-
-        header('Location: gradebook.php?section_id=' . $selectedSectionId);
-        exit;
     }
 }
 

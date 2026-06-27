@@ -590,4 +590,8 @@ return [
     'next_page'                  => 'ถัดไป',
     'results'                    => 'รายการ',
     'search_student_placeholder' => 'ค้นหารหัสนักศึกษาหรือชื่อ…',
+
+    // Generic error messages
+    'save_failed'      => 'บันทึกไม่สำเร็จ กรุณาลองใหม่อีกครั้ง',
+    'unexpected_error' => 'เกิดข้อผิดพลาดที่ไม่คาดคิด กรุณาลองใหม่อีกครั้ง',
 ];
