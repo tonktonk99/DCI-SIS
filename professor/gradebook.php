@@ -1,6 +1,7 @@
 <?php
 require '../includes/auth.php';
 require '../config/database.php';
+require '../includes/audit.php';
 
 requireRole('professor');
 $user = getUser();
@@ -115,6 +116,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'add_i
         } else {
             $stmt = $pdo->prepare("INSERT INTO grade_items (section_id, name, weight, max_score, sort_order) VALUES (?, ?, ?, ?, ?)");
             $stmt->execute([$selectedSectionId, $name, $weight, $maxScore, $sortOrder]);
+            $newItemId = (int)$pdo->lastInsertId();
+            logAudit($pdo, (int)$user['id'], 'GRADEBOOK.ADD_ITEM', 'grade_items', $newItemId, 'Added grade item: ' . $name . ' weight: ' . $weight . ' section: ' . $selectedSectionId);
             header('Location: gradebook.php?section_id=' . $selectedSectionId);
             exit;
         }
@@ -172,6 +175,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save_
             }
 
             $pdo->commit();
+            logAudit($pdo, (int)$user['id'], 'GRADEBOOK.SAVE_SCORES', 'sections', $selectedSectionId, 'Saved scores for section: ' . $selectedSectionId . ' (' . count($scoresInput) . ' students)');
             header('Location: gradebook.php?section_id=' . $selectedSectionId);
             exit;
         } catch (Throwable $e) {
@@ -223,6 +227,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'submi
             }
 
             $pdo->commit();
+            logAudit($pdo, (int)$user['id'], 'GRADEBOOK.SUBMIT_FINAL', 'sections', $selectedSectionId, 'Submitted final grades for section: ' . $selectedSectionId . ' (' . count($roster) . ' students)');
             header('Location: gradebook.php?section_id=' . $selectedSectionId);
             exit;
         } catch (Throwable $e) {

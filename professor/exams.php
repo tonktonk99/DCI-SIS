@@ -1,6 +1,7 @@
 <?php
 require '../includes/auth.php';
 require '../config/database.php';
+require '../includes/audit.php';
 
 requireRole('professor');
 $user = getUser();
@@ -65,6 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save_
         }
 
         $pdo->commit();
+        logAudit($pdo, (int)$user['id'], 'EXAM.SAVE_SCORES', 'exams', $selectedExamId, 'Saved exam scores for exam: ' . $selectedExamId);
         header('Location: exams.php?exam_id=' . $selectedExamId);
         exit;
     } catch (PDOException $e) {

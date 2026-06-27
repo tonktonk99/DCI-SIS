@@ -1,6 +1,7 @@
 <?php
 require '../includes/auth.php';
 require '../config/database.php';
+require '../includes/audit.php';
 
 requireRole('student');
 $user = getUser();
@@ -36,6 +37,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $studentId > 0) {
             $deliveryMethod,
             $note ?: null
         ]);
+        $newRequestId = (int)$pdo->lastInsertId();
+        logAudit($pdo, (int)$user['id'], 'DOCUMENT_REQUEST.SUBMIT', 'document_requests', $newRequestId, 'Request type: ' . $requestType . ' delivery: ' . $deliveryMethod);
         header('Location: requests.php');
         exit;
     }

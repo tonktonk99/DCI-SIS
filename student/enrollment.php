@@ -1,6 +1,7 @@
 <?php
 require '../includes/auth.php';
 require '../config/database.php';
+require '../includes/audit.php';
 
 requireRole('student');
 $user = getUser();
@@ -82,6 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $studentId > 0) {
 
                 $pdo->prepare("UPDATE sections SET enrolled_count = enrolled_count + 1 WHERE id = ?")->execute([$sectionId]);
                 $pdo->commit();
+                logAudit($pdo, (int)$user['id'], 'ENROLLMENT.ENROLL', 'sections', $sectionId, 'Enrolled in section: ' . $sectionId . ' course: ' . $sec['course_code']);
                 $message = __('success_registered', ['course' => $sec['course_code']]);
                 $messageType = 'success';
             } catch (PDOException $e) {
@@ -110,6 +112,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $studentId > 0) {
                 $pdo->prepare("UPDATE enrollments SET status = 'dropped', dropped_at = NOW() WHERE id = ?")->execute([$enrollmentId]);
                 $pdo->prepare("UPDATE sections SET enrolled_count = GREATEST(enrolled_count - 1, 0) WHERE id = ?")->execute([(int)$en['section_id']]);
                 $pdo->commit();
+                logAudit($pdo, (int)$user['id'], 'ENROLLMENT.DROP', 'enrollments', $enrollmentId, 'Dropped enrollment: ' . $enrollmentId . ' section: ' . $en['section_id']);
                 $message = __('success_withdrawn');
                 $messageType = 'success';
             } catch (PDOException $e) {

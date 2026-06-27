@@ -1,6 +1,7 @@
 <?php
 require '../includes/auth.php';
 require '../config/database.php';
+require '../includes/audit.php';
 
 requireRole('alumni');
 $user = getUser();
@@ -21,6 +22,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $stmt = $pdo->prepare("INSERT INTO document_requests (requester_user_id, requester_type, request_type, purpose, delivery_method, note, status, requested_at) VALUES (?, 'alumni', ?, ?, ?, ?, 'pending', NOW())");
         $stmt->execute([(int)$user['id'], $requestType, $purpose, $deliveryMethod, $note ?: null]);
+        $newRequestId = (int)$pdo->lastInsertId();
+        logAudit($pdo, (int)$user['id'], 'DOCUMENT_REQUEST.SUBMIT', 'document_requests', $newRequestId, 'Alumni request type: ' . $requestType . ' delivery: ' . $deliveryMethod);
         header('Location: dashboard.php');
         exit;
     }
