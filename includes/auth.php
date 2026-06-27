@@ -3,6 +3,7 @@ require_once __DIR__ . '/../config/session.php';
 require_once __DIR__ . '/lang.php';
 require_once __DIR__ . '/flash.php';
 require_once __DIR__ . '/response.php';
+require_once __DIR__ . '/validation.php';
 require_once __DIR__ . '/csrf.php';
 
 function checkLogin(): void
