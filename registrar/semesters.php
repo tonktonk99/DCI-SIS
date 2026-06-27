@@ -1,6 +1,7 @@
 <?php
 require '../includes/auth.php';
 require '../config/database.php';
+require '../includes/audit.php';
 
 requireRole('registrar', 'admin');
 $user = getUser();
@@ -9,6 +10,7 @@ $pageTitle = __('manage_semesters');
 $crumb = __('office_of_registrar') . ' / ' . __('academic_setup');
 
 $message = '';
+$currentUserId = (int)$user['id'];
 
 $yearStmt = $pdo->query("
     SELECT *
@@ -64,6 +66,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $status,
             $is_current
         ]);
+        $newSemesterId = (int)$pdo->lastInsertId();
+        logAudit($pdo, $currentUserId, 'SEMESTER.CREATE', 'semesters', $newSemesterId, 'Created semester: ' . $semester_name . ' status: ' . $status);
 
         header('Location: semesters.php');
         exit;
@@ -77,6 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'set_c
         $pdo->query("UPDATE semesters SET is_current = 0");
         $stmt = $pdo->prepare("UPDATE semesters SET is_current = 1 WHERE id = ?");
         $stmt->execute([$id]);
+        logAudit($pdo, $currentUserId, 'SEMESTER.SET_CURRENT', 'semesters', $id, 'Set semester ID ' . $id . ' as current');
     }
     header('Location: semesters.php');
     exit;

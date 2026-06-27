@@ -1,6 +1,7 @@
 <?php
 require '../includes/auth.php';
 require '../config/database.php';
+require '../includes/audit.php';
 
 requireRole('registrar', 'admin');
 $user = getUser();
@@ -8,6 +9,7 @@ $user = getUser();
 $pageTitle = __('degree_programs');
 $crumb = __('office_of_registrar') . ' / ' . __('academic_setup');
 $message = '';
+$currentUserId = (int)$user['id'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
@@ -35,6 +37,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $degree_level ?: null,
                     $status
                 ]);
+                $newProgramId = (int)$pdo->lastInsertId();
+                logAudit($pdo, $currentUserId, 'PROGRAM.CREATE', 'programs', $newProgramId, 'Created program: ' . $program_code . ' ' . $program_name_th);
 
                 header('Location: programs.php');
                 exit;
@@ -57,6 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'toggl
             $newStatus = $currentStatus === 'active' ? 'inactive' : 'active';
             $update = $pdo->prepare("UPDATE programs SET status = ? WHERE id = ?");
             $update->execute([$newStatus, $id]);
+            logAudit($pdo, $currentUserId, 'PROGRAM.TOGGLE_STATUS', 'programs', $id, 'Status changed from ' . $currentStatus . ' to ' . $newStatus);
         }
     }
     header('Location: programs.php');

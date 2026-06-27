@@ -1,6 +1,7 @@
 <?php
 require '../includes/auth.php';
 require '../config/database.php';
+require '../includes/audit.php';
 
 requireRole('registrar', 'admin');
 $user = getUser();
@@ -8,6 +9,7 @@ $user = getUser();
 $pageTitle = __('faculty_directory');
 $crumb = __('office_of_registrar') . ' / ' . __('faculty_directory');
 $message = '';
+$currentUserId = (int)$user['id'];
 
 $userStmt = $pdo->query("SELECT id, username FROM users WHERE role = 'professor' ORDER BY username ASC");
 $professorUsers = $userStmt->fetchAll(PDO::FETCH_ASSOC);
@@ -33,6 +35,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 $stmt = $pdo->prepare("INSERT INTO staff (user_id, staff_code, first_name, last_name, position, status) VALUES (?, ?, ?, ?, ?, ?)");
                 $stmt->execute([$user_id > 0 ? $user_id : null, $staff_code, $first_name, $last_name, $position ?: null, $status]);
+                $newStaffId = (int)$pdo->lastInsertId();
+                logAudit($pdo, $currentUserId, 'STAFF.CREATE', 'staff', $newStaffId, 'Created professor: ' . $staff_code . ' ' . $first_name . ' ' . $last_name);
                 header('Location: professors.php');
                 exit;
             } catch (PDOException $e) {
@@ -54,6 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'toggl
             $newStatus = $currentStatus === 'active' ? 'inactive' : 'active';
             $update = $pdo->prepare("UPDATE staff SET status = ? WHERE id = ?");
             $update->execute([$newStatus, $id]);
+            logAudit($pdo, $currentUserId, 'STAFF.TOGGLE_STATUS', 'staff', $id, 'Status changed from ' . $currentStatus . ' to ' . $newStatus);
         }
     }
     header('Location: professors.php');

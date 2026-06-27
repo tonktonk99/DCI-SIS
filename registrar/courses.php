@@ -1,6 +1,7 @@
 <?php
 require '../includes/auth.php';
 require '../config/database.php';
+require '../includes/audit.php';
 
 requireRole('registrar', 'admin');
 $user = getUser();
@@ -8,6 +9,7 @@ $user = getUser();
 $pageTitle = __('course_catalog');
 $crumb = __('office_of_registrar') . ' / ' . __('academic_setup');
 $message = '';
+$currentUserId = (int)$user['id'];
 
 $programStmt = $pdo->query("SELECT * FROM programs WHERE status = 'active' ORDER BY program_name_th ASC");
 $programs = $programStmt->fetchAll(PDO::FETCH_ASSOC);
@@ -42,6 +44,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $description ?: null,
                     $status
                 ]);
+                $newCourseId = (int)$pdo->lastInsertId();
+                logAudit($pdo, $currentUserId, 'COURSE.CREATE', 'courses', $newCourseId, 'Created course: ' . $course_code . ' ' . $course_name_th);
                 header('Location: courses.php');
                 exit;
             } catch (PDOException $e) {
@@ -63,6 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'toggl
             $newStatus = $currentStatus === 'active' ? 'inactive' : 'active';
             $update = $pdo->prepare("UPDATE courses SET status = ? WHERE id = ?");
             $update->execute([$newStatus, $id]);
+            logAudit($pdo, $currentUserId, 'COURSE.TOGGLE_STATUS', 'courses', $id, 'Status changed from ' . $currentStatus . ' to ' . $newStatus);
         }
     }
     header('Location: courses.php');

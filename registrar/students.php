@@ -1,6 +1,7 @@
 <?php
 require '../includes/auth.php';
 require '../config/database.php';
+require '../includes/audit.php';
 
 requireRole('registrar', 'admin');
 $user = getUser();
@@ -8,6 +9,7 @@ $user = getUser();
 $pageTitle = __('student_records');
 $crumb = __('office_of_registrar') . ' / ' . __('student_records');
 $message = '';
+$currentUserId = (int)$user['id'];
 
 $userStmt = $pdo->query("SELECT id, username FROM users WHERE role = 'student' ORDER BY username ASC");
 $studentUsers = $userStmt->fetchAll(PDO::FETCH_ASSOC);
@@ -49,6 +51,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $cumulative_gpa,
                     $total_credits_earned
                 ]);
+                $newStudentId = (int)$pdo->lastInsertId();
+                logAudit($pdo, $currentUserId, 'STUDENT.CREATE', 'students', $newStudentId, 'Created student: ' . $student_code . ' ' . $first_name . ' ' . $last_name);
                 header('Location: students.php');
                 exit;
             } catch (PDOException $e) {
@@ -66,6 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'set_s
     if ($id > 0 && in_array($newStatus, $allowed, true)) {
         $stmt = $pdo->prepare("UPDATE students SET study_status = ? WHERE id = ?");
         $stmt->execute([$newStatus, $id]);
+        logAudit($pdo, $currentUserId, 'STUDENT.STATUS_CHANGE', 'students', $id, 'Study status changed to: ' . $newStatus);
     }
     header('Location: students.php');
     exit;

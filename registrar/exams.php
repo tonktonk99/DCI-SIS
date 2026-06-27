@@ -1,6 +1,7 @@
 <?php
 require '../includes/auth.php';
 require '../config/database.php';
+require '../includes/audit.php';
 
 requireRole('registrar', 'admin');
 $user = getUser();
@@ -8,6 +9,7 @@ $user = getUser();
 $pageTitle = __('examination_schedule');
 $crumb = __('office_of_registrar') . ' / ' . __('examination_schedule');
 $message = '';
+$currentUserId = (int)$user['id'];
 
 $sectionStmt = $pdo->query("SELECT sections.id, sections.section_number, sections.room_name, semesters.semester_name, courses.course_code, courses.course_name_th FROM sections JOIN semesters ON semesters.id = sections.semester_id JOIN courses ON courses.id = sections.course_id WHERE sections.status = 'active' ORDER BY semesters.id DESC, courses.course_code ASC, sections.section_number ASC");
 $sections = $sectionStmt->fetchAll(PDO::FETCH_ASSOC);
@@ -39,6 +41,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $max_score,
             $status
         ]);
+        $newExamId = (int)$pdo->lastInsertId();
+        logAudit($pdo, $currentUserId, 'EXAM.CREATE', 'exams', $newExamId, 'Created exam: ' . $exam_title . ' type: ' . $exam_type . ' section: ' . $section_id);
 
         header('Location: exams.php');
         exit;
@@ -57,6 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'toggl
             $newStatus = $current === 'published' ? 'scheduled' : 'published';
             $update = $pdo->prepare("UPDATE exams SET status = ? WHERE id = ?");
             $update->execute([$newStatus, $id]);
+            logAudit($pdo, $currentUserId, 'EXAM.TOGGLE_STATUS', 'exams', $id, 'Status changed from ' . $current . ' to ' . $newStatus);
         }
     }
     header('Location: exams.php');

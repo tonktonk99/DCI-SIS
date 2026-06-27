@@ -1,6 +1,7 @@
 <?php
 require '../includes/auth.php';
 require '../config/database.php';
+require '../includes/audit.php';
 
 requireRole('registrar', 'admin');
 $user = getUser();
@@ -8,6 +9,7 @@ $user = getUser();
 $pageTitle = __('class_sections');
 $crumb = __('office_of_registrar') . ' / ' . __('academic_setup');
 $message = '';
+$currentUserId = (int)$user['id'];
 
 $semesterStmt = $pdo->query("SELECT * FROM semesters ORDER BY id DESC");
 $semesters = $semesterStmt->fetchAll(PDO::FETCH_ASSOC);
@@ -72,6 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 $pdo->commit();
+                logAudit($pdo, $currentUserId, 'SECTION.CREATE', 'sections', $sectionId, 'Created section: ' . $section_number . ' course: ' . $course_id . ' semester: ' . $semester_id);
                 header('Location: sections.php');
                 exit;
             } catch (PDOException $e) {
@@ -96,6 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'toggl
             $newStatus = $currentStatus === 'active' ? 'inactive' : 'active';
             $update = $pdo->prepare("UPDATE sections SET status = ? WHERE id = ?");
             $update->execute([$newStatus, $id]);
+            logAudit($pdo, $currentUserId, 'SECTION.TOGGLE_STATUS', 'sections', $id, 'Status changed from ' . $currentStatus . ' to ' . $newStatus);
         }
     }
     header('Location: sections.php');

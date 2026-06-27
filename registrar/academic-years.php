@@ -1,6 +1,7 @@
 <?php
 require '../includes/auth.php';
 require '../config/database.php';
+require '../includes/audit.php';
 
 requireRole('registrar', 'admin');
 $user = getUser();
@@ -9,6 +10,7 @@ $pageTitle = __('manage_academic_years');
 $crumb = __('office_of_registrar') . ' / ' . __('academic_setup');
 
 $message = '';
+$currentUserId = (int)$user['id'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
@@ -39,6 +41,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $end_date ?: null,
             $is_current
         ]);
+        $newYearId = (int)$pdo->lastInsertId();
+        logAudit($pdo, $currentUserId, 'ACADEMIC_YEAR.CREATE', 'academic_years', $newYearId, 'Created academic year: ' . $year_label);
 
         header('Location: academic-years.php');
         exit;
@@ -52,6 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'set_c
         $pdo->query("UPDATE academic_years SET is_current = 0");
         $stmt = $pdo->prepare("UPDATE academic_years SET is_current = 1 WHERE id = ?");
         $stmt->execute([$id]);
+        logAudit($pdo, $currentUserId, 'ACADEMIC_YEAR.SET_CURRENT', 'academic_years', $id, 'Set academic year ID ' . $id . ' as current');
     }
     header('Location: academic-years.php');
     exit;
