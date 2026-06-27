@@ -1,5 +1,6 @@
-# Database credentials
+# Database credentials and secrets
 config/database.php
+.env
 
 # OS files
 .DS_Store

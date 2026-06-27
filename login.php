@@ -513,6 +513,7 @@ $hasError = isset($_GET['error']);
                     <button type="submit" class="button"><?= __('login_button') ?></button>
                 </form>
 
+                <?php if (APP_DEBUG): ?>
                 <div class="divider"><?= __('demo_access') ?></div>
 
                 <div class="demo-box">
@@ -524,6 +525,7 @@ $hasError = isset($_GET['error']);
                         <div class="demo-item"><strong>student1</strong> / 1234</div>
                     </div>
                 </div>
+                <?php endif; ?>
 
                 <div class="small-note"><?= __('dci_name_en') ?></div>
             </div>

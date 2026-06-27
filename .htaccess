@@ -1,0 +1,31 @@
+# Disable directory listing
+Options -Indexes
+
+# Block direct HTTP access to server-side directories
+# (config, includes, scripts, database are never fetched directly by browsers)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(config|includes|scripts|database)(/|$) - [F,L]
+</IfModule>
+
+# Block sensitive file types
+<FilesMatch "\.(sql|log|env|ini|sh|bak)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order Allow,Deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# Block dot files except this file
+<FilesMatch "^\.(?!htaccess$)">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order Allow,Deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
