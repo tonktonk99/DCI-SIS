@@ -8,7 +8,7 @@ $user = getUser();
 $pageTitle = __('alumni_document_request');
 $crumb = __('alumni_documents_crumb');
 $message = '';
-$defaultType = basename($_SERVER['PHP_SELF']) === 'certificate-request.php' ? 'certificate' : 'transcript';
+$defaultType = basename($_SERVER['PHP_SELF']) === 'certificate_request.php' ? 'certificate' : 'transcript';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $requestType = trim($_POST['request_type'] ?? $defaultType);

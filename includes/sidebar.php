@@ -97,8 +97,8 @@ if (!function_exists('navActive')) {
             <a class="nav-link<?= navActive('/alumni/profile.php') ?>" href="/dci-sis/alumni/profile.php"><span class="nav-icon">⊞</span> <?= __('alumni_profile') ?></a>
 
             <div class="nav-section"><?= __('document_requests') ?></div>
-            <a class="nav-link<?= navActive('/alumni/transcript-request.php') ?>" href="/dci-sis/alumni/transcript-request.php"><span class="nav-icon">⊡</span> <?= __('transcript_request') ?></a>
-            <a class="nav-link<?= navActive('/alumni/certificate-request.php') ?>" href="/dci-sis/alumni/certificate-request.php"><span class="nav-icon">§</span> <?= __('certificate_request') ?></a>
+            <a class="nav-link<?= navActive('/alumni/transcript_request.php') ?>" href="/dci-sis/alumni/transcript_request.php"><span class="nav-icon">⊡</span> <?= __('transcript_request') ?></a>
+            <a class="nav-link<?= navActive('/alumni/certificate_request.php') ?>" href="/dci-sis/alumni/certificate_request.php"><span class="nav-icon">§</span> <?= __('certificate_request') ?></a>
 
         <?php endif; ?>
 
