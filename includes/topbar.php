@@ -30,3 +30,4 @@ $currentUri = $_SERVER['REQUEST_URI'] ?? '/dci-sis/';
         <a class="logout-link" href="/dci-sis/logout.php"><?= __('sign_out') ?></a>
     </div>
 </header>
+<?php flash_render(); ?>
