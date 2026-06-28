@@ -47,6 +47,7 @@ open http://localhost/dci-sis/login.php
 | [`docs/production-smoke-checklist.md`](docs/production-smoke-checklist.md) | Production pre/post-deploy checklist |
 | [`docs/test-plan.md`](docs/test-plan.md) | Full test plan (148 test cases, all 5 roles) |
 | [`docs/load-test-plan.md`](docs/load-test-plan.md) | k6 load test plan and staging scenarios (Phase 1O) |
+| [`docs/final-production-readiness-review.md`](docs/final-production-readiness-review.md) | Final production readiness audit: scorecard, blockers, Go/No-Go (Phase 1P) |
 
 ---
 
