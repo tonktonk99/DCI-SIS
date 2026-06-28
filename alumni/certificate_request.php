@@ -12,6 +12,7 @@ $message = '';
 $defaultType = basename($_SERVER['PHP_SELF']) === 'certificate_request.php' ? 'certificate' : 'transcript';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf();
     $requestType    = input_enum($_POST, 'request_type', ['transcript', 'certificate'], $defaultType);
     $purpose        = trim($_POST['purpose'] ?? '');
     $deliveryMethod = input_enum($_POST, 'delivery_method', ['pickup', 'email_pdf', 'postal_mail'], '');
@@ -48,6 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <div class="card">
             <form method="POST" action="<?= htmlspecialchars(basename($_SERVER['PHP_SELF'])) ?>">
+                <?= csrf_field() ?>
                 <input type="hidden" name="request_type" value="<?= htmlspecialchars($defaultType) ?>">
 
                 <div style="margin-bottom:14px;">
