@@ -29,6 +29,7 @@ if ($staffId > 0) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save_scores' && $selectedExamId > 0 && $staffId > 0) {
+    verify_csrf();
     $scores = $_POST['scores'] ?? [];
 
     try {
@@ -179,6 +180,7 @@ if ($selectedExamId > 0 && $staffId > 0) {
                         </div>
 
                         <form method="POST" action="exams.php">
+                            <?= csrf_field() ?>
                             <input type="hidden" name="action" value="save_scores">
                             <input type="hidden" name="exam_id" value="<?= (int)$selectedExam['id'] ?>">
 
