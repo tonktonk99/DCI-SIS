@@ -2,6 +2,12 @@
 config/database.php
 .env
 
+# Backup files — never commit backup data or dumps
+backups/
+*.sql.gz
+*.dump
+*.bak
+
 # OS files
 .DS_Store
 Thumbs.db
