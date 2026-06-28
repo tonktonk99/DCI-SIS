@@ -9,6 +9,7 @@ $pageTitle = __('registrar_home');
 $crumb = __('office_of_registrar');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf();
     $petitionId = (int)($_POST['petition_id'] ?? 0);
     $action = $_POST['petition_action'] ?? '';
     $note = trim($_POST['reviewer_note'] ?? '');
@@ -144,12 +145,14 @@ $recentSections = $pdo->query("
                     </div>
                     <div style="display:flex;gap:6px;flex-shrink:0;">
                         <form method="POST" style="margin:0;">
+                            <?= csrf_field() ?>
                             <input type="hidden" name="petition_id" value="<?= (int)$pet['id'] ?>">
                             <input type="hidden" name="petition_action" value="approved">
                             <input type="hidden" name="reviewer_note" value="">
                             <button type="submit" class="btn" style="padding:6px 14px;font-size:12px;background:var(--green);" onclick="return confirm('<?= __('confirm_approve') ?>')"><?= __('approve') ?></button>
                         </form>
                         <form method="POST" style="margin:0;">
+                            <?= csrf_field() ?>
                             <input type="hidden" name="petition_id" value="<?= (int)$pet['id'] ?>">
                             <input type="hidden" name="petition_action" value="denied">
                             <input type="hidden" name="reviewer_note" value="">
