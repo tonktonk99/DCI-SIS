@@ -20,6 +20,7 @@ if (!$student) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $studentId > 0) {
+    verify_csrf();
     $requestType    = input_enum($_POST, 'request_type', ['transcript', 'certificate', 'student_status', 'graduation_certificate', 'other'], '');
     $purpose        = trim($_POST['purpose'] ?? '');
     $deliveryMethod = input_enum($_POST, 'delivery_method', ['pickup', 'email_pdf', 'postal_mail'], '');
@@ -114,6 +115,7 @@ if ($studentId > 0) {
                 <h3 class="section-title"><?= __('create_new_request') ?></h3>
                 <div class="card">
                     <form method="POST" action="requests.php">
+                        <?= csrf_field() ?>
                         <div style="margin-bottom:14px;">
                             <label style="display:block;font-size:12px;color:#8a7c5e;margin-bottom:6px;"><?= __('document_type') ?></label>
                             <select name="request_type" required style="width:100%;padding:10px;border:1px solid #d9cfb8;background:#fff;font-family:inherit;">
