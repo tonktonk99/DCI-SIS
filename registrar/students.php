@@ -76,7 +76,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'set_s
     exit;
 }
 
-$stmt = $pdo->query("SELECT students.*, users.username, programs.program_code, programs.program_name_th FROM students LEFT JOIN users ON users.id = students.user_id LEFT JOIN programs ON programs.id = students.program_id ORDER BY students.id DESC");
+$search = input_string($_GET, 'q', '', 100);
+['page' => $page, 'per_page' => $perPage] = validate_page_params($_GET, 50, 100);
+$offset = ($page - 1) * $perPage;
+
+$searchParams = [];
+$whereClause = '';
+if ($search !== '') {
+    $like = '%' . $search . '%';
+    $whereClause = 'WHERE (students.student_code LIKE ? OR students.first_name LIKE ? OR students.last_name LIKE ?)';
+    $searchParams = [$like, $like, $like];
+}
+
+$countStmt = $pdo->prepare("SELECT COUNT(*) FROM students $whereClause");
+$countStmt->execute($searchParams);
+$totalCount = (int)$countStmt->fetchColumn();
+$totalPages = max(1, (int)ceil($totalCount / $perPage));
+$page = min($page, $totalPages);
+
+$stmt = $pdo->prepare("SELECT students.*, users.username, programs.program_code, programs.program_name_th FROM students LEFT JOIN users ON users.id = students.user_id LEFT JOIN programs ON programs.id = students.program_id $whereClause ORDER BY students.id DESC LIMIT ? OFFSET ?");
+$stmt->execute(array_merge($searchParams, [$perPage, $offset]));
 $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
@@ -91,6 +110,11 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <div class="grid-2">
             <div>
                 <h3 class="section-title"><?= __('student_list') ?></h3>
+                <form method="GET" action="students.php" style="margin-bottom:10px;display:flex;gap:8px;">
+                    <input type="text" name="q" value="<?= htmlspecialchars($search) ?>" placeholder="รหัสนักศึกษา / ชื่อ / นามสกุล" style="flex:1;padding:8px 10px;border:1px solid #d9cfb8;background:#fff;font-family:inherit;">
+                    <button type="submit" class="btn btn-light" style="padding:8px 14px;">ค้นหา</button>
+                    <?php if ($search !== ''): ?><a href="students.php" class="btn btn-light" style="padding:8px 14px;">ล้าง</a><?php endif; ?>
+                </form>
                 <div class="card"><table class="table"><thead><tr><th><?= __('code') ?></th><th><?= __('name') ?></th><th><?= __('account') ?></th><th><?= __('program_label') ?></th><th><?= __('year_entered') ?></th><th>GPA</th><th><?= __('credits') ?></th><th><?= __('status') ?></th><th><?= __('manage') ?></th></tr></thead><tbody>
                     <?php if (count($students) === 0): ?><tr><td colspan="9"><?= __('no_student_records') ?></td></tr><?php endif; ?>
                     <?php foreach ($students as $student): ?><tr>
@@ -105,6 +129,13 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <td><div style="display:flex;gap:6px;flex-wrap:wrap;"><form method="post" style="display:inline;"><?= csrf_field() ?><input type="hidden" name="action" value="set_status"><input type="hidden" name="id" value="<?= (int)$student['id'] ?>"><input type="hidden" name="status" value="studying"><button type="submit" class="btn btn-light" style="padding:6px 10px;font-size:11px;"><?= __('status_studying') ?></button></form><form method="post" style="display:inline;"><?= csrf_field() ?><input type="hidden" name="action" value="set_status"><input type="hidden" name="id" value="<?= (int)$student['id'] ?>"><input type="hidden" name="status" value="leave"><button type="submit" class="btn btn-light" style="padding:6px 10px;font-size:11px;"><?= __('status_leave') ?></button></form><form method="post" style="display:inline;"><?= csrf_field() ?><input type="hidden" name="action" value="set_status"><input type="hidden" name="id" value="<?= (int)$student['id'] ?>"><input type="hidden" name="status" value="graduated"><button type="submit" class="btn btn-light" style="padding:6px 10px;font-size:11px;"><?= __('status_graduated') ?></button></form></div></td>
                     </tr><?php endforeach; ?>
                 </tbody></table></div>
+                <?php if ($totalPages > 1): ?>
+                <div style="display:flex;align-items:center;gap:12px;margin-top:8px;font-size:13px;">
+                    <?php if ($page > 1): ?><a class="btn btn-light" style="padding:6px 12px;" href="students.php?page=<?= $page - 1 ?>&q=<?= urlencode($search) ?>">&laquo; ก่อนหน้า</a><?php endif; ?>
+                    <span style="color:var(--muted);">หน้า <?= $page ?> / <?= $totalPages ?> (<?= number_format($totalCount) ?> รายการ)</span>
+                    <?php if ($page < $totalPages): ?><a class="btn btn-light" style="padding:6px 12px;" href="students.php?page=<?= $page + 1 ?>&q=<?= urlencode($search) ?>">ถัดไป &raquo;</a><?php endif; ?>
+                </div>
+                <?php endif; ?>
             </div>
             <div>
                 <h3 class="section-title"><?= __('add_student') ?></h3>
