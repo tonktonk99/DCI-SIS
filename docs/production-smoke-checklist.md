@@ -35,8 +35,16 @@ Database:
     File: ____________________________________________
     Size: ____________
 [ ] Backup file tested: gunzip -t <file> → OK
-[ ] Migrations reviewed: any new migration files? [ ] Yes  [ ] No
-    If Yes: migration tested in staging first? [ ] Yes (required)
+[ ] Migration status checked (no pending, no checksum mismatch):
+    php scripts/migrate.php status
+[ ] Migrations dry-run reviewed:
+    APP_ENV=production MIGRATE_CONFIRM=YES php scripts/migrate.php migrate --dry-run
+    Pending migrations: __________________________________________
+[ ] Migrations tested on staging first? [ ] Yes (required for any new migration)
+[ ] Migrations applied (if any pending):
+    APP_ENV=production MIGRATE_CONFIRM=YES php scripts/migrate.php migrate --apply
+[ ] Migration status re-checked after apply — Pending: 0, no ⚠:
+    php scripts/migrate.php status
 
 Testing:
 [ ] Smoke test script passed in staging:
