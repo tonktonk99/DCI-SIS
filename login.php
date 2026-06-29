@@ -379,33 +379,6 @@ $hasError = isset($_GET['error']);
             font-size: 11px;
         }
 
-        .lang-toggle {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            z-index: 10;
-            display: flex;
-            gap: 4px;
-        }
-
-        .lang-toggle a {
-            display: inline-block;
-            padding: 4px 10px;
-            font-family: Tahoma, Arial, sans-serif;
-            font-size: 11px;
-            font-weight: 700;
-            text-decoration: none;
-            border-radius: 3px;
-            color: rgba(255,255,255,0.6);
-            border: 1px solid rgba(255,255,255,0.25);
-        }
-
-        .lang-toggle a.active {
-            background: var(--crimson-dark);
-            color: #fff;
-            border-color: rgba(255,255,255,0.5);
-        }
-
         @media (max-width: 920px) {
             body {
                 padding: 16px;
@@ -461,11 +434,6 @@ $hasError = isset($_GET['error']);
 <body>
     <main class="page">
         <section class="identity">
-            <div class="lang-toggle">
-                <a href="/dci-sis/actions/set-lang.php?lang=th&redirect=/dci-sis/login.php" class="<?= currentLang() === 'th' ? 'active' : '' ?>">TH</a>
-                <a href="/dci-sis/actions/set-lang.php?lang=en&redirect=/dci-sis/login.php" class="<?= currentLang() === 'en' ? 'active' : '' ?>">EN</a>
-            </div>
-
             <div class="identity-inner">
                 <div class="crest-row">
                     <div class="crest">
