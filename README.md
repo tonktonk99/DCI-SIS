@@ -52,6 +52,7 @@ open http://localhost/dci-sis/login.php
 | [`docs/pilot-wave-1-plan.md`](docs/pilot-wave-1-plan.md) | Pilot Wave 1 execution plan: scope, entry criteria, monitoring, rollback (Phase 2F) |
 | [`docs/pilot-wave-1-execution-runbook.md`](docs/pilot-wave-1-execution-runbook.md) | Pilot Wave 1 execution runbook: entry gate, 10-step runbook, user matrix, monitoring, rollback (Phase 2J) |
 | [`docs/pilot-wave-1-daily-monitoring.md`](docs/pilot-wave-1-daily-monitoring.md) | Pilot Wave 1 daily monitoring template: system health, security signals, workflow health, Go/No-Go, escalation (Phase 2K) |
+| [`docs/pilot-wave-1-review.md`](docs/pilot-wave-1-review.md) | Pilot Wave 1 review template: participation, workflow results, issues, security/perf/ops, scorecard, Wave 2 Go/No-Go (Phase 2L) |
 
 ---
 
