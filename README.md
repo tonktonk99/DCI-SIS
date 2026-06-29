@@ -51,6 +51,7 @@ open http://localhost/dci-sis/login.php
 | [`docs/staging-execution-plan.md`](docs/staging-execution-plan.md) | Blocker triage + ordered commit plan + staging deploy steps (Phase 2A) |
 | [`docs/pilot-wave-1-plan.md`](docs/pilot-wave-1-plan.md) | Pilot Wave 1 execution plan: scope, entry criteria, monitoring, rollback (Phase 2F) |
 | [`docs/pilot-wave-1-execution-runbook.md`](docs/pilot-wave-1-execution-runbook.md) | Pilot Wave 1 execution runbook: entry gate, 10-step runbook, user matrix, monitoring, rollback (Phase 2J) |
+| [`docs/pilot-wave-1-daily-monitoring.md`](docs/pilot-wave-1-daily-monitoring.md) | Pilot Wave 1 daily monitoring template: system health, security signals, workflow health, Go/No-Go, escalation (Phase 2K) |
 
 ---
 
