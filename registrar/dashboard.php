@@ -244,10 +244,10 @@ $recentSections = $pdo->query("
 
                 <h3 class="section-title" style="margin-top:24px;"><?= __('quick_actions') ?></h3>
                 <div class="card">
-                    <p><a class="btn" href="/dci-sis/registrar/grades.php" style="width:100%;text-align:center;display:block;"><?= __('grade_submission_review') ?></a></p>
-                    <p><a class="btn btn-light" href="/dci-sis/registrar/document-requests.php" style="width:100%;text-align:center;display:block;"><?= __('document_services') ?></a></p>
-                    <p><a class="btn btn-light" href="/dci-sis/registrar/sections.php" style="width:100%;text-align:center;display:block;"><?= __('manage_sections') ?></a></p>
-                    <p><a class="btn btn-light" href="/dci-sis/registrar/students.php" style="width:100%;text-align:center;display:block;"><?= __('student_records') ?></a></p>
+                    <p><a class="btn" href="<?= APP_BASE ?>/registrar/grades.php" style="width:100%;text-align:center;display:block;"><?= __('grade_submission_review') ?></a></p>
+                    <p><a class="btn btn-light" href="<?= APP_BASE ?>/registrar/document-requests.php" style="width:100%;text-align:center;display:block;"><?= __('document_services') ?></a></p>
+                    <p><a class="btn btn-light" href="<?= APP_BASE ?>/registrar/sections.php" style="width:100%;text-align:center;display:block;"><?= __('manage_sections') ?></a></p>
+                    <p><a class="btn btn-light" href="<?= APP_BASE ?>/registrar/students.php" style="width:100%;text-align:center;display:block;"><?= __('student_records') ?></a></p>
                 </div>
 
                 <h3 class="section-title" style="margin-top:24px;"><?= __('pending_items') ?></h3>
