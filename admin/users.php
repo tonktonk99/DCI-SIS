@@ -185,7 +185,7 @@ foreach ($countStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
                                             <?= csrf_field() ?>
                                             <input type="hidden" name="action" value="reset_password">
                                             <input type="hidden" name="user_id" value="<?= (int)$row['id'] ?>">
-                                            <input type="text" name="new_password" placeholder="<?= __('new_password_placeholder') ?>" style="width:120px;padding:6px;border:1px solid #d9cfb8;background:#fff;font-family:inherit;">
+                                            <input type="password" name="new_password" placeholder="<?= __('new_password_placeholder') ?>" style="width:120px;padding:6px;border:1px solid #d9cfb8;background:#fff;font-family:inherit;">
                                             <button type="submit" class="btn btn-light" style="padding:6px 10px;font-size:11px;"><?= __('reset') ?></button>
                                         </form>
                                     </td>
