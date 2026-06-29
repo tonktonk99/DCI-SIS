@@ -1,6 +1,7 @@
 <?php
 require '../includes/auth.php';
 require '../config/database.php';
+require '../includes/audit.php';
 
 requireRole('registrar', 'admin');
 $user = getUser();
@@ -17,6 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($petitionId > 0 && in_array($action, ['approved', 'denied'])) {
         $pdo->prepare("UPDATE registrar_petitions SET status = ?, reviewed_by = ?, reviewed_at = NOW(), reviewer_note = ? WHERE id = ? AND status = 'pending'")
             ->execute([$action, (int)$user['id'], $note, $petitionId]);
+        logAudit($pdo, (int)$user['id'], $action === 'approved' ? 'PETITION.APPROVED' : 'PETITION.DENIED', 'registrar_petitions', $petitionId);
         header('Location: dashboard.php');
         exit;
     }
