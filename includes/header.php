@@ -8,7 +8,7 @@ if (!isset($crumb)) {
 }
 ?>
 <!DOCTYPE html>
-<html>
+<html lang="<?= htmlspecialchars(currentLang(), ENT_QUOTES, 'UTF-8') ?>">
 <head>
     <meta charset="UTF-8">
     <title><?= htmlspecialchars($pageTitle) ?> - DCI Academic Portal</title>
