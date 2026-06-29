@@ -25,8 +25,8 @@ $crumb = __('alumni_home');
             </div>
             <div class="card">
                 <h3 class="section-title"><?= __('alumni_quick_links') ?></h3>
-                <p><a class="btn" href="/dci-sis/alumni/transcript_request.php"><?= __('transcript_request') ?></a></p>
-                <p><a class="btn btn-light" href="/dci-sis/alumni/certificate_request.php"><?= __('certificate_request') ?></a></p>
+                <p><a class="btn" href="<?= APP_BASE ?>/alumni/transcript_request.php"><?= __('transcript_request') ?></a></p>
+                <p><a class="btn btn-light" href="<?= APP_BASE ?>/alumni/certificate_request.php"><?= __('certificate_request') ?></a></p>
             </div>
         </div>
     </div>
