@@ -18,3 +18,7 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Dev task artifacts (ad-hoc SQL scripts and checklists from development phase)
+task29*
+task33*
