@@ -193,9 +193,31 @@ $uid_alumni    = seed_user($pdo, 'alumni_test',    'alumni',    $passwordHash, $
 echo "\n";
 
 // =============================================================================
-// 2. Programs (re-use BS or create)
+// 2. Programs — Dhammachai Institute / คณะพุทธศาสตร์
+//    IPS : Year 1 foundation — International Program Scholarships
+//    BS  : Year 2–4 — Buddhist Studies (สาขาวิชาพุทธศาสตร์)
+//    BD  : Year 2–4 — Buddhadhamma Dissemination (สาขาวิชาเผยแผ่พุทธธรรม)
+//    TD  : Year 2–4 — Technology Use in Disseminating Dhamma (สาขาเทคโนโลยีการเผยแผ่พุทธธรรม)
 // =============================================================================
 echo "=== 2. Programs ===\n";
+
+// IPS — Year 1 foundation
+$program_ips_id = find_one($pdo, "SELECT id FROM programs WHERE program_code = 'IPS' LIMIT 1", []);
+if ($program_ips_id !== null) {
+    log_skip('programs', 'IPS', $program_ips_id);
+    $stats['skipped']++;
+} elseif ($dryRun) {
+    log_dry('programs', 'IPS โครงการทุนเรียนภาษานานาชาติ');
+    $stats['would_create']++;
+    $program_ips_id = 0;
+} else {
+    $pdo->prepare("INSERT INTO programs (program_code, program_name_th, program_name_en, status) VALUES ('IPS', 'โครงการทุนเรียนภาษานานาชาติ', 'International Program Scholarships', 'active')")->execute([]);
+    $program_ips_id = (int)$pdo->lastInsertId();
+    log_create('programs', 'IPS โครงการทุนเรียนภาษานานาชาติ', $program_ips_id);
+    $stats['created']++;
+}
+
+// BS — Buddhist Studies, Year 2–4
 $program_id = find_one($pdo, "SELECT id FROM programs WHERE program_code = 'BS' LIMIT 1", []);
 if ($program_id !== null) {
     log_skip('programs', 'BS', $program_id);
@@ -205,9 +227,41 @@ if ($program_id !== null) {
     $stats['would_create']++;
     $program_id = 0;
 } else {
-    $pdo->prepare("INSERT INTO programs (program_code, program_name_th, status) VALUES ('BS', 'สาขาวิชาพุทธศาสตร์', 'active')")->execute([]);
+    $pdo->prepare("INSERT INTO programs (program_code, program_name_th, program_name_en, status) VALUES ('BS', 'สาขาวิชาพุทธศาสตร์', 'Buddhist Studies', 'active')")->execute([]);
     $program_id = (int)$pdo->lastInsertId();
     log_create('programs', 'BS สาขาวิชาพุทธศาสตร์', $program_id);
+    $stats['created']++;
+}
+
+// BD — Buddhadhamma Dissemination, Year 2–4
+$program_bd_id = find_one($pdo, "SELECT id FROM programs WHERE program_code = 'BD' LIMIT 1", []);
+if ($program_bd_id !== null) {
+    log_skip('programs', 'BD', $program_bd_id);
+    $stats['skipped']++;
+} elseif ($dryRun) {
+    log_dry('programs', 'BD สาขาวิชาเผยแผ่พุทธธรรม');
+    $stats['would_create']++;
+    $program_bd_id = 0;
+} else {
+    $pdo->prepare("INSERT INTO programs (program_code, program_name_th, program_name_en, status) VALUES ('BD', 'สาขาวิชาเผยแผ่พุทธธรรม', 'Buddhadhamma Dissemination', 'active')")->execute([]);
+    $program_bd_id = (int)$pdo->lastInsertId();
+    log_create('programs', 'BD สาขาวิชาเผยแผ่พุทธธรรม', $program_bd_id);
+    $stats['created']++;
+}
+
+// TD — Technology Use in Disseminating Dhamma, Year 2–4
+$program_td_id = find_one($pdo, "SELECT id FROM programs WHERE program_code = 'TD' LIMIT 1", []);
+if ($program_td_id !== null) {
+    log_skip('programs', 'TD', $program_td_id);
+    $stats['skipped']++;
+} elseif ($dryRun) {
+    log_dry('programs', 'TD สาขาเทคโนโลยีการเผยแผ่พุทธธรรม');
+    $stats['would_create']++;
+    $program_td_id = 0;
+} else {
+    $pdo->prepare("INSERT INTO programs (program_code, program_name_th, program_name_en, status) VALUES ('TD', 'สาขาเทคโนโลยีการเผยแผ่พุทธธรรม', 'Technology Use in Disseminating Dhamma', 'active')")->execute([]);
+    $program_td_id = (int)$pdo->lastInsertId();
+    log_create('programs', 'TD สาขาเทคโนโลยีการเผยแผ่พุทธธรรม', $program_td_id);
     $stats['created']++;
 }
 echo "\n";
