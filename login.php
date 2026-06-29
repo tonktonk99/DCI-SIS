@@ -1,5 +1,6 @@
 <?php
 require __DIR__ . '/config/session.php';
+$_SESSION['lang'] = 'en';
 require __DIR__ . '/includes/lang.php';
 require __DIR__ . '/includes/csrf.php';
 
@@ -472,7 +473,6 @@ $hasError = isset($_GET['error']);
                     </div>
                     <div>
                         <div class="school-name"><?= __('dci_name_en') ?></div>
-                        <div class="school-sub"><?= __('dci_name_th') ?></div>
                     </div>
                 </div>
 
