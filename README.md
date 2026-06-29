@@ -49,6 +49,7 @@ open http://localhost/dci-sis/login.php
 | [`docs/load-test-plan.md`](docs/load-test-plan.md) | k6 load test plan and staging scenarios (Phase 1O) |
 | [`docs/final-production-readiness-review.md`](docs/final-production-readiness-review.md) | Final production readiness audit: scorecard, blockers, Go/No-Go (Phase 1P) |
 | [`docs/staging-execution-plan.md`](docs/staging-execution-plan.md) | Blocker triage + ordered commit plan + staging deploy steps (Phase 2A) |
+| [`docs/pilot-wave-1-plan.md`](docs/pilot-wave-1-plan.md) | Pilot Wave 1 execution plan: scope, entry criteria, monitoring, rollback (Phase 2F) |
 
 ---
 
