@@ -111,9 +111,9 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <div>
                 <h3 class="section-title"><?= __('student_list') ?></h3>
                 <form method="GET" action="students.php" style="margin-bottom:10px;display:flex;gap:8px;">
-                    <input type="text" name="q" value="<?= htmlspecialchars($search) ?>" placeholder="รหัสนักศึกษา / ชื่อ / นามสกุล" style="flex:1;padding:8px 10px;border:1px solid #d9cfb8;background:#fff;font-family:inherit;">
-                    <button type="submit" class="btn btn-light" style="padding:8px 14px;">ค้นหา</button>
-                    <?php if ($search !== ''): ?><a href="students.php" class="btn btn-light" style="padding:8px 14px;">ล้าง</a><?php endif; ?>
+                    <input type="text" name="q" value="<?= htmlspecialchars($search) ?>" placeholder="<?= htmlspecialchars(__('search_student_placeholder')) ?>" style="flex:1;padding:8px 10px;border:1px solid #d9cfb8;background:#fff;font-family:inherit;">
+                    <button type="submit" class="btn btn-light" style="padding:8px 14px;"><?= __('search') ?></button>
+                    <?php if ($search !== ''): ?><a href="students.php" class="btn btn-light" style="padding:8px 14px;"><?= __('reset') ?></a><?php endif; ?>
                 </form>
                 <div class="card"><table class="table"><thead><tr><th><?= __('code') ?></th><th><?= __('name') ?></th><th><?= __('account') ?></th><th><?= __('program_label') ?></th><th><?= __('year_entered') ?></th><th>GPA</th><th><?= __('credits') ?></th><th><?= __('status') ?></th><th><?= __('manage') ?></th></tr></thead><tbody>
                     <?php if (count($students) === 0): ?><tr><td colspan="9"><?= __('no_student_records') ?></td></tr><?php endif; ?>
@@ -131,9 +131,9 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 </tbody></table></div>
                 <?php if ($totalPages > 1): ?>
                 <div style="display:flex;align-items:center;gap:12px;margin-top:8px;font-size:13px;">
-                    <?php if ($page > 1): ?><a class="btn btn-light" style="padding:6px 12px;" href="students.php?page=<?= $page - 1 ?>&q=<?= urlencode($search) ?>">&laquo; ก่อนหน้า</a><?php endif; ?>
-                    <span style="color:var(--muted);">หน้า <?= $page ?> / <?= $totalPages ?> (<?= number_format($totalCount) ?> รายการ)</span>
-                    <?php if ($page < $totalPages): ?><a class="btn btn-light" style="padding:6px 12px;" href="students.php?page=<?= $page + 1 ?>&q=<?= urlencode($search) ?>">ถัดไป &raquo;</a><?php endif; ?>
+                    <?php if ($page > 1): ?><a class="btn btn-light" style="padding:6px 12px;" href="students.php?page=<?= $page - 1 ?>&q=<?= urlencode($search) ?>">&laquo; <?= __('prev_page') ?></a><?php endif; ?>
+                    <span style="color:var(--muted);"><?= number_format($totalCount) ?> <?= __('results') ?> &nbsp;&middot;&nbsp; <?= $page ?> / <?= $totalPages ?></span>
+                    <?php if ($page < $totalPages): ?><a class="btn btn-light" style="padding:6px 12px;" href="students.php?page=<?= $page + 1 ?>&q=<?= urlencode($search) ?>"><?= __('next_page') ?> &raquo;</a><?php endif; ?>
                 </div>
                 <?php endif; ?>
             </div>
