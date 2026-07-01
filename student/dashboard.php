@@ -12,6 +12,27 @@ require_once '../includes/IdentityRepository.php';
 $student = (new IdentityRepository($pdo))->resolveStudentForUser((int)$user['id']);
 $studentId = (int)($student['id'] ?? 0);
 
+// Academic dashboard mode — derived entirely from already-loaded $student
+// fields (year_level, program_code, study_status), no extra queries.
+//   ips_foundation : year_level = 1, or program is IPS
+//   concentration  : year_level 2-4 in a declared BS/BD/TD program
+//   alumni         : study_status graduated/alumni
+//   fallback       : anything else (e.g. year_level not yet set) — keeps
+//                     the original, unconditional dashboard behavior
+$studyStatus = $student['study_status'] ?? null;
+$programCode = $student['program_code'] ?? null;
+$yearLevel = (int)($student['year_level'] ?? 0);
+
+if (in_array($studyStatus, ['graduated', 'alumni'], true)) {
+    $dashboardMode = 'alumni';
+} elseif ($yearLevel === 1 || $programCode === 'IPS') {
+    $dashboardMode = 'ips_foundation';
+} elseif (in_array($yearLevel, [2, 3, 4], true) && in_array($programCode, ['BS', 'BD', 'TD'], true)) {
+    $dashboardMode = 'concentration';
+} else {
+    $dashboardMode = 'fallback';
+}
+
 $enrolledCount = 0;
 $totalCredits = 0;
 $todayClasses = [];
@@ -60,6 +81,22 @@ if ($studentId > 0) {
             <div class="hero-desc">
                 <?= $student ? htmlspecialchars(($student['program_code'] ?? '-') . ' · ' . ($student['program_name_th'] ?? '-')) : '' ?>
             </div>
+
+            <?php if ($dashboardMode === 'ips_foundation'): ?>
+                <div style="margin-top:10px;">
+                    <span class="badge badge-gold"><?= __('ips_foundation_badge') ?></span>
+                    <span style="font-size:12px;color:var(--muted);margin-left:8px;"><?= __('concentration_declare_note') ?></span>
+                </div>
+            <?php elseif ($dashboardMode === 'concentration'): ?>
+                <div style="margin-top:10px;">
+                    <span class="badge badge-blue"><?= __('year_level_badge', ['level' => $yearLevel]) ?></span>
+                </div>
+            <?php elseif ($dashboardMode === 'alumni'): ?>
+                <div style="margin-top:10px;">
+                    <span class="badge badge-green"><?= __('alumni_status_badge') ?></span>
+                    <span style="font-size:12px;color:var(--muted);margin-left:8px;"><?= __('alumni_enrollment_closed_note') ?></span>
+                </div>
+            <?php endif; ?>
 
             <div class="kpi-row">
                 <div class="kpi"><div class="kpi-label"><?= __('registered_courses') ?></div><div class="kpi-value"><?= number_format($enrolledCount) ?></div></div>
@@ -123,9 +160,24 @@ if ($studentId > 0) {
 
                 <h3 class="section-title" style="margin-top:28px;"><?= __('quick_actions') ?></h3>
                 <div class="card">
-                    <p><a class="btn" href="/dci-sis/student/enrollment.php"><?= __('course_registration') ?></a></p>
-                    <p><a class="btn btn-light" href="/dci-sis/student/transcript.php"><?= __('view_transcript') ?></a></p>
-                    <p><a class="btn btn-light" href="/dci-sis/student/requests.php"><?= __('request_documents') ?></a></p>
+                    <?php if ($dashboardMode === 'alumni'): ?>
+                        <p><a class="btn" href="/dci-sis/student/transcript.php"><?= __('view_transcript') ?></a></p>
+                        <p><a class="btn btn-light" href="/dci-sis/student/requests.php"><?= __('request_documents') ?></a></p>
+                    <?php elseif ($dashboardMode === 'ips_foundation'): ?>
+                        <p><a class="btn" href="/dci-sis/student/enrollment.php"><?= __('category_ips') ?></a></p>
+                        <p><a class="btn btn-light" href="/dci-sis/student/schedule.php"><?= __('class_schedule') ?></a></p>
+                        <p><a class="btn btn-light" href="/dci-sis/student/grades.php"><?= __('student_grades') ?></a></p>
+                        <p><a class="btn btn-light" href="/dci-sis/student/requests.php"><?= __('request_documents') ?></a></p>
+                    <?php elseif ($dashboardMode === 'concentration'): ?>
+                        <p><a class="btn" href="/dci-sis/student/enrollment.php"><?= __('category_concentration') ?></a></p>
+                        <p><a class="btn btn-light" href="/dci-sis/student/grades.php"><?= __('student_grades') ?></a></p>
+                        <p><a class="btn btn-light" href="/dci-sis/student/transcript.php"><?= __('view_transcript') ?></a></p>
+                        <p><a class="btn btn-light" href="/dci-sis/student/requests.php"><?= __('request_documents') ?></a></p>
+                    <?php else: ?>
+                        <p><a class="btn" href="/dci-sis/student/enrollment.php"><?= __('course_registration') ?></a></p>
+                        <p><a class="btn btn-light" href="/dci-sis/student/transcript.php"><?= __('view_transcript') ?></a></p>
+                        <p><a class="btn btn-light" href="/dci-sis/student/requests.php"><?= __('request_documents') ?></a></p>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>

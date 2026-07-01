@@ -606,6 +606,13 @@ return [
     'year_level_3' => 'ปี 3',
     'year_level_4' => 'ปี 4',
 
+    // Student Dashboard – academic status
+    'year_level_badge' => 'ปี :level',
+    'ips_foundation_badge' => 'ปีเตรียมพื้นฐาน IPS',
+    'alumni_status_badge' => 'ศิษย์เก่า / สำเร็จการศึกษา',
+    'concentration_declare_note' => 'การเลือกสาขา/วิชาเอกจะเปิดในปี 2',
+    'alumni_enrollment_closed_note' => 'ปิดการลงทะเบียนสำหรับนักศึกษาที่สำเร็จการศึกษา/ศิษย์เก่า',
+
     // Generic error messages
     'save_failed'      => 'บันทึกไม่สำเร็จ กรุณาลองใหม่อีกครั้ง',
     'unexpected_error' => 'เกิดข้อผิดพลาดที่ไม่คาดคิด กรุณาลองใหม่อีกครั้ง',

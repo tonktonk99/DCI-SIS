@@ -32,7 +32,8 @@ class IdentityRepository
      *
      * Keys guaranteed: id, user_id, student_code, program_id, first_name,
      *   last_name, admission_year, study_status, cumulative_gpa,
-     *   total_credits_earned, program_code, program_name_th, program_name_en
+     *   total_credits_earned, year_level, program_code, program_name_th,
+     *   program_name_en
      *
      * Returns null when neither the identity model nor legacy table
      * has a record for this user.
@@ -83,6 +84,7 @@ class IdentityRepository
                 COALESCE(s.study_status,          sp.academic_status)     AS study_status,
                 COALESCE(s.cumulative_gpa,        0.00)                   AS cumulative_gpa,
                 COALESCE(s.total_credits_earned,  0)                      AS total_credits_earned,
+                s.year_level,
                 s.created_at,
                 prog.program_code,
                 prog.program_name_th,

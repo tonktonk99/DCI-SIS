@@ -606,6 +606,13 @@ return [
     'year_level_3' => 'Year 3',
     'year_level_4' => 'Year 4',
 
+    // Student Dashboard – academic status
+    'year_level_badge' => 'Year :level',
+    'ips_foundation_badge' => 'IPS Foundation Year',
+    'alumni_status_badge' => 'Alumni / Graduated',
+    'concentration_declare_note' => 'Major/Concentration declaration opens in Year 2',
+    'alumni_enrollment_closed_note' => 'Enrollment is closed for graduated/alumni students',
+
     // Generic error messages
     'save_failed'      => 'Save failed. Please try again.',
     'unexpected_error' => 'An unexpected error occurred. Please try again.',
