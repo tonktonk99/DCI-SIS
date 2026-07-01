@@ -98,6 +98,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'set_y
     exit;
 }
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'set_program') {
+    verify_csrf();
+    $id = (int)($_POST['id'] ?? 0);
+    $activeProgramIds = array_column($programs, 'id');
+    $newProgramId = input_int($_POST, 'program_id', null, 1);
+    if ($newProgramId !== null && !in_array($newProgramId, $activeProgramIds, true)) {
+        $newProgramId = null;
+    }
+    if ($id > 0) {
+        $stmt = $pdo->prepare("UPDATE students SET program_id = ? WHERE id = ?");
+        $stmt->execute([$newProgramId, $id]);
+        logAudit($pdo, $currentUserId, 'STUDENT.PROGRAM_CHANGE', 'students', $id, 'Program set to: ' . ($newProgramId ?? 'none'));
+    }
+    header('Location: students.php');
+    exit;
+}
+
 $search = input_string($_GET, 'q', '', 100);
 ['page' => $page, 'per_page' => $perPage] = validate_page_params($_GET, 50, 100);
 $offset = ($page - 1) * $perPage;
@@ -143,7 +160,20 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <td class="mono"><?= htmlspecialchars($student['student_code']) ?></td>
                         <td><?= htmlspecialchars($student['first_name'] . ' ' . $student['last_name']) ?></td>
                         <td><?= htmlspecialchars($student['username'] ?? '-') ?></td>
-                        <td><?php if (!empty($student['program_code'])): ?><span class="mono"><?= htmlspecialchars($student['program_code']) ?></span><div style="font-size:12px;color:#8a7c5e;"><?= htmlspecialchars($student['program_name_th']) ?></div><?php else: ?>-<?php endif; ?></td>
+                        <td>
+                            <form method="post" style="display:flex;gap:4px;align-items:center;margin:0;">
+                                <?= csrf_field() ?>
+                                <input type="hidden" name="action" value="set_program">
+                                <input type="hidden" name="id" value="<?= (int)$student['id'] ?>">
+                                <select name="program_id" style="padding:4px;border:1px solid #d9cfb8;background:#fff;font-family:inherit;font-size:11px;">
+                                    <option value=""><?= __('no_program_specified') ?></option>
+                                    <?php foreach ($programs as $program): ?>
+                                        <option value="<?= (int)$program['id'] ?>" <?= (int)($student['program_id'] ?? 0) === (int)$program['id'] ? 'selected' : '' ?>><?= htmlspecialchars($program['program_code']) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <button type="submit" class="btn btn-light" style="padding:4px 8px;font-size:11px;"><?= __('save') ?></button>
+                            </form>
+                        </td>
                         <td class="mono"><?= htmlspecialchars($student['admission_year'] ?? '-') ?></td>
                         <td>
                             <form method="post" style="display:flex;gap:4px;align-items:center;margin:0;">
