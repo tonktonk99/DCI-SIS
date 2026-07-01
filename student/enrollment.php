@@ -17,6 +17,25 @@ $stmt->execute([(int)$user['id']]);
 $student = $stmt->fetch(PDO::FETCH_ASSOC);
 $studentId = $student ? (int)$student['id'] : 0;
 
+// Category visibility filter — students.year_level is the source of truth
+// (A4-Pre-1..3) for which courses.category values a student may see/enroll in.
+//   year_level = 1        -> ips, general_ed, elective
+//   year_level IN (2,3,4) -> general_ed, elective, concentration matching program_id
+// courses.category IS NULL or 'other' are always included (backward-compatible,
+// never hide a course due to missing/uncategorized data).
+// year_level IS NULL (not yet set by registrar) -> no restriction applied,
+// preserves prior catalog behavior rather than guessing which tier applies.
+$categoryVisibilitySql = '';
+$categoryVisibilityParams = [];
+if ($student && $student['year_level'] !== null) {
+    if ((int)$student['year_level'] === 1) {
+        $categoryVisibilitySql = " AND (courses.category IN ('ips', 'general_ed', 'elective') OR courses.category IS NULL OR courses.category = 'other')";
+    } else {
+        $categoryVisibilitySql = " AND (courses.category IN ('general_ed', 'elective') OR courses.category IS NULL OR courses.category = 'other' OR (courses.category = 'concentration' AND courses.program_id = ?))";
+        $categoryVisibilityParams[] = $student['program_id'];
+    }
+}
+
 $currentSem = $pdo->query("SELECT * FROM semesters WHERE is_current = 1 LIMIT 1")->fetch(PDO::FETCH_ASSOC);
 if (!$currentSem) {
     $currentSem = $pdo->query("SELECT * FROM semesters ORDER BY id DESC LIMIT 1")->fetch(PDO::FETCH_ASSOC);
@@ -39,8 +58,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $studentId > 0) {
         if ($sectionId > 0) {
             try {
                 $pdo->beginTransaction();
-                $secStmt = $pdo->prepare("SELECT sections.*, courses.course_id AS cid, courses.credits, courses.course_code FROM sections JOIN courses ON courses.id = sections.course_id WHERE sections.id = ? AND sections.status = 'active' FOR UPDATE");
-                $secStmt->execute([$sectionId]);
+                $secStmt = $pdo->prepare("SELECT sections.*, courses.credits, courses.course_code FROM sections JOIN courses ON courses.id = sections.course_id WHERE sections.id = ? AND sections.status = 'active'" . $categoryVisibilitySql . " FOR UPDATE");
+                $secStmt->execute(array_merge([$sectionId], $categoryVisibilityParams));
                 $sec = $secStmt->fetch(PDO::FETCH_ASSOC);
 
                 if (!$sec) throw new Exception(__('section_unavailable'));
@@ -191,6 +210,9 @@ if ($filterProg !== '') {
     $catalogSql .= " AND courses.program_id = ?";
     $params[] = (int)$filterProg;
 }
+
+$catalogSql .= $categoryVisibilitySql;
+$params = array_merge($params, $categoryVisibilityParams);
 
 $catalogSql .= " ORDER BY courses.course_code ASC, sections.section_number ASC";
 $catStmt = $pdo->prepare($catalogSql);
