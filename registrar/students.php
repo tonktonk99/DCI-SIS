@@ -17,6 +17,13 @@ $studentUsers = $userStmt->fetchAll(PDO::FETCH_ASSOC);
 $programStmt = $pdo->query("SELECT * FROM programs WHERE status = 'active' ORDER BY program_name_th ASC");
 $programs = $programStmt->fetchAll(PDO::FETCH_ASSOC);
 
+$yearLevelOptions = [
+    1 => 'year_level_1',
+    2 => 'year_level_2',
+    3 => 'year_level_3',
+    4 => 'year_level_4',
+];
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
     $user_id = (int)($_POST['user_id'] ?? 0);
@@ -28,6 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $study_status = input_enum($_POST, 'study_status', ['studying', 'leave', 'graduated', 'withdrawn', 'suspended'], 'studying');
     $cumulative_gpa = (float)($_POST['cumulative_gpa'] ?? 0);
     $total_credits_earned = (int)($_POST['total_credits_earned'] ?? 0);
+    $year_level = input_int($_POST, 'year_level', null, 1, 4);
 
     if ($student_code === '' || $first_name === '' || $last_name === '') {
         $message = __('fill_student_code_name');
@@ -39,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $message = __('duplicate_student_code') . ': ' . $student_code;
         } else {
             try {
-                $stmt = $pdo->prepare("INSERT INTO students (user_id, student_code, program_id, first_name, last_name, admission_year, study_status, cumulative_gpa, total_credits_earned) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt = $pdo->prepare("INSERT INTO students (user_id, student_code, program_id, first_name, last_name, admission_year, study_status, cumulative_gpa, total_credits_earned, year_level) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                 $stmt->execute([
                     $user_id > 0 ? $user_id : null,
                     $student_code,
@@ -49,7 +57,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $admission_year ?: null,
                     $study_status,
                     $cumulative_gpa,
-                    $total_credits_earned
+                    $total_credits_earned,
+                    $year_level
                 ]);
                 $newStudentId = (int)$pdo->lastInsertId();
                 logAudit($pdo, $currentUserId, 'STUDENT.CREATE', 'students', $newStudentId, 'Created student: ' . $student_code . ' ' . $first_name . ' ' . $last_name);
@@ -71,6 +80,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'set_s
         $stmt = $pdo->prepare("UPDATE students SET study_status = ? WHERE id = ?");
         $stmt->execute([$newStatus, $id]);
         logAudit($pdo, $currentUserId, 'STUDENT.STATUS_CHANGE', 'students', $id, 'Study status changed to: ' . $newStatus);
+    }
+    header('Location: students.php');
+    exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'set_year_level') {
+    verify_csrf();
+    $id = (int)($_POST['id'] ?? 0);
+    $newYearLevel = input_int($_POST, 'year_level', null, 1, 4);
+    if ($id > 0) {
+        $stmt = $pdo->prepare("UPDATE students SET year_level = ? WHERE id = ?");
+        $stmt->execute([$newYearLevel, $id]);
+        logAudit($pdo, $currentUserId, 'STUDENT.YEAR_LEVEL_CHANGE', 'students', $id, 'Year level set to: ' . ($newYearLevel ?? 'none'));
     }
     header('Location: students.php');
     exit;
@@ -115,14 +137,28 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <button type="submit" class="btn btn-light" style="padding:8px 14px;"><?= __('search') ?></button>
                     <?php if ($search !== ''): ?><a href="students.php" class="btn btn-light" style="padding:8px 14px;"><?= __('reset') ?></a><?php endif; ?>
                 </form>
-                <div class="card"><table class="table"><thead><tr><th><?= __('code') ?></th><th><?= __('name') ?></th><th><?= __('account') ?></th><th><?= __('program_label') ?></th><th><?= __('year_entered') ?></th><th>GPA</th><th><?= __('credits') ?></th><th><?= __('status') ?></th><th><?= __('manage') ?></th></tr></thead><tbody>
-                    <?php if (count($students) === 0): ?><tr><td colspan="9"><?= __('no_student_records') ?></td></tr><?php endif; ?>
+                <div class="card"><table class="table"><thead><tr><th><?= __('code') ?></th><th><?= __('name') ?></th><th><?= __('account') ?></th><th><?= __('program_label') ?></th><th><?= __('year_entered') ?></th><th><?= __('year_level_label') ?></th><th>GPA</th><th><?= __('credits') ?></th><th><?= __('status') ?></th><th><?= __('manage') ?></th></tr></thead><tbody>
+                    <?php if (count($students) === 0): ?><tr><td colspan="10"><?= __('no_student_records') ?></td></tr><?php endif; ?>
                     <?php foreach ($students as $student): ?><tr>
                         <td class="mono"><?= htmlspecialchars($student['student_code']) ?></td>
                         <td><?= htmlspecialchars($student['first_name'] . ' ' . $student['last_name']) ?></td>
                         <td><?= htmlspecialchars($student['username'] ?? '-') ?></td>
                         <td><?php if (!empty($student['program_code'])): ?><span class="mono"><?= htmlspecialchars($student['program_code']) ?></span><div style="font-size:12px;color:#8a7c5e;"><?= htmlspecialchars($student['program_name_th']) ?></div><?php else: ?>-<?php endif; ?></td>
                         <td class="mono"><?= htmlspecialchars($student['admission_year'] ?? '-') ?></td>
+                        <td>
+                            <form method="post" style="display:flex;gap:4px;align-items:center;margin:0;">
+                                <?= csrf_field() ?>
+                                <input type="hidden" name="action" value="set_year_level">
+                                <input type="hidden" name="id" value="<?= (int)$student['id'] ?>">
+                                <select name="year_level" style="padding:4px;border:1px solid #d9cfb8;background:#fff;font-family:inherit;font-size:11px;">
+                                    <option value=""><?= __('select_year_level') ?></option>
+                                    <?php foreach ($yearLevelOptions as $ylKey => $ylLangKey): ?>
+                                        <option value="<?= (int)$ylKey ?>" <?= (int)($student['year_level'] ?? 0) === $ylKey ? 'selected' : '' ?>><?= __($ylLangKey) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <button type="submit" class="btn btn-light" style="padding:4px 8px;font-size:11px;"><?= __('save') ?></button>
+                            </form>
+                        </td>
                         <td class="mono"><?= number_format((float)$student['cumulative_gpa'], 2) ?></td>
                         <td class="mono"><?= (int)$student['total_credits_earned'] ?></td>
                         <td><span class="badge badge-blue"><?= htmlspecialchars($student['study_status']) ?></span></td>
@@ -146,6 +182,7 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;"><div><label style="display:block;font-size:12px;color:#8a7c5e;margin-bottom:6px;"><?= __('first_name') ?></label><input type="text" name="first_name" required style="width:100%;padding:10px;border:1px solid #d9cfb8;background:#fff;font-family:inherit;"></div><div><label style="display:block;font-size:12px;color:#8a7c5e;margin-bottom:6px;"><?= __('last_name') ?></label><input type="text" name="last_name" required style="width:100%;padding:10px;border:1px solid #d9cfb8;background:#fff;font-family:inherit;"></div></div>
                     <div style="margin-bottom:14px;"><label style="display:block;font-size:12px;color:#8a7c5e;margin-bottom:6px;"><?= __('program_label') ?></label><select name="program_id" style="width:100%;padding:10px;border:1px solid #d9cfb8;background:#fff;font-family:inherit;"><option value=""><?= __('no_program_specified') ?></option><?php foreach ($programs as $program): ?><option value="<?= (int)$program['id'] ?>"><?= htmlspecialchars($program['program_code']) ?> - <?= htmlspecialchars($program['program_name_th']) ?></option><?php endforeach; ?></select></div>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;"><div><label style="display:block;font-size:12px;color:#8a7c5e;margin-bottom:6px;"><?= __('year_entered') ?></label><input type="text" name="admission_year" style="width:100%;padding:10px;border:1px solid #d9cfb8;background:#fff;font-family:inherit;"></div><div><label style="display:block;font-size:12px;color:#8a7c5e;margin-bottom:6px;"><?= __('status') ?></label><select name="study_status" style="width:100%;padding:10px;border:1px solid #d9cfb8;background:#fff;font-family:inherit;"><option value="studying"><?= __('status_studying') ?></option><option value="leave"><?= __('status_leave') ?></option><option value="graduated"><?= __('status_graduated') ?></option><option value="withdrawn"><?= __('status_withdrawn') ?></option><option value="suspended"><?= __('status_suspended') ?></option></select></div></div>
+                    <div style="margin-bottom:14px;"><label style="display:block;font-size:12px;color:#8a7c5e;margin-bottom:6px;"><?= __('year_level_label') ?></label><select name="year_level" style="width:100%;padding:10px;border:1px solid #d9cfb8;background:#fff;font-family:inherit;"><option value=""><?= __('select_year_level') ?></option><?php foreach ($yearLevelOptions as $ylKey => $ylLangKey): ?><option value="<?= (int)$ylKey ?>"><?= __($ylLangKey) ?></option><?php endforeach; ?></select></div>
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;"><div><label style="display:block;font-size:12px;color:#8a7c5e;margin-bottom:6px;"><?= __('cumulative_gpa') ?></label><input type="number" step="0.01" min="0" max="4" name="cumulative_gpa" value="0.00" style="width:100%;padding:10px;border:1px solid #d9cfb8;background:#fff;font-family:inherit;"></div><div><label style="display:block;font-size:12px;color:#8a7c5e;margin-bottom:6px;"><?= __('credits_earned') ?></label><input type="number" min="0" name="total_credits_earned" value="0" style="width:100%;padding:10px;border:1px solid #d9cfb8;background:#fff;font-family:inherit;"></div></div>
                     <button type="submit" class="btn"><?= __('save_student') ?></button>
                 </form></div>

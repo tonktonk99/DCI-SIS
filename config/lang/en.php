@@ -598,6 +598,14 @@ return [
     'results'                    => 'results',
     'search_student_placeholder' => 'Search by student code or name…',
 
+    // Registrar – Students (year level)
+    'year_level_label' => 'Year Level',
+    'select_year_level' => '-- Select Year Level --',
+    'year_level_1' => 'Year 1 / IPS Foundation',
+    'year_level_2' => 'Year 2',
+    'year_level_3' => 'Year 3',
+    'year_level_4' => 'Year 4',
+
     // Generic error messages
     'save_failed'      => 'Save failed. Please try again.',
     'unexpected_error' => 'An unexpected error occurred. Please try again.',

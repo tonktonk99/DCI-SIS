@@ -598,6 +598,14 @@ return [
     'results'                    => 'รายการ',
     'search_student_placeholder' => 'ค้นหารหัสนักศึกษาหรือชื่อ…',
 
+    // Registrar – Students (year level)
+    'year_level_label' => 'ชั้นปี',
+    'select_year_level' => '-- เลือกชั้นปี --',
+    'year_level_1' => 'ปี 1 / IPS Foundation',
+    'year_level_2' => 'ปี 2',
+    'year_level_3' => 'ปี 3',
+    'year_level_4' => 'ปี 4',
+
     // Generic error messages
     'save_failed'      => 'บันทึกไม่สำเร็จ กรุณาลองใหม่อีกครั้ง',
     'unexpected_error' => 'เกิดข้อผิดพลาดที่ไม่คาดคิด กรุณาลองใหม่อีกครั้ง',
