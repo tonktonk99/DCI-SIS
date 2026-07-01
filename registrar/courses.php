@@ -14,6 +14,14 @@ $currentUserId = (int)$user['id'];
 $programStmt = $pdo->query("SELECT * FROM programs WHERE status = 'active' ORDER BY program_name_th ASC");
 $programs = $programStmt->fetchAll(PDO::FETCH_ASSOC);
 
+$categoryOptions = [
+    'ips'           => 'category_ips',
+    'concentration' => 'category_concentration',
+    'general_ed'    => 'category_general_ed',
+    'elective'      => 'category_elective',
+    'other'         => 'category_other',
+];
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
     $program_id = (int)($_POST['program_id'] ?? 0);
@@ -23,6 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $credits = (int)($_POST['credits'] ?? 0);
     $description = trim($_POST['description'] ?? '');
     $status = input_enum($_POST, 'status', ['active', 'inactive'], 'active');
+    $category = input_enum($_POST, 'category', array_keys($categoryOptions), null);
 
     if ($course_code === '' || $course_name_th === '') {
         $message = __('fill_course_code_name');
@@ -34,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $message = __('duplicate_course_code') . ': ' . $course_code;
         } else {
             try {
-                $stmt = $pdo->prepare("INSERT INTO courses (program_id, course_code, course_name_th, course_name_en, credits, description, status) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                $stmt = $pdo->prepare("INSERT INTO courses (program_id, course_code, course_name_th, course_name_en, credits, description, status, category) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
                 $stmt->execute([
                     $program_id > 0 ? $program_id : null,
                     $course_code,
@@ -42,7 +51,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $course_name_en ?: null,
                     $credits,
                     $description ?: null,
-                    $status
+                    $status,
+                    $category
                 ]);
                 $newCourseId = (int)$pdo->lastInsertId();
                 logAudit($pdo, $currentUserId, 'COURSE.CREATE', 'courses', $newCourseId, 'Created course: ' . $course_code . ' ' . $course_name_th);
@@ -74,6 +84,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'toggl
     exit;
 }
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'set_category') {
+    verify_csrf();
+    $id = (int)($_POST['id'] ?? 0);
+    $category = input_enum($_POST, 'category', array_keys($categoryOptions), null);
+    if ($id > 0) {
+        $update = $pdo->prepare("UPDATE courses SET category = ? WHERE id = ?");
+        $update->execute([$category, $id]);
+        logAudit($pdo, $currentUserId, 'COURSE.CATEGORY_CHANGE', 'courses', $id, 'Category set to: ' . ($category ?? 'none'));
+    }
+    header('Location: courses.php');
+    exit;
+}
+
 $stmt = $pdo->query("SELECT courses.*, programs.program_code, programs.program_name_th FROM courses LEFT JOIN programs ON programs.id = courses.program_id ORDER BY courses.id DESC");
 $courses = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
@@ -97,9 +120,9 @@ $courses = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <h3 class="section-title"><?= __('course_list') ?></h3>
                 <div class="card">
                     <table class="table">
-                        <thead><tr><th><?= __('course_code') ?></th><th><?= __('course_title') ?></th><th><?= __('program_label') ?></th><th><?= __('credits') ?></th><th><?= __('status') ?></th><th><?= __('manage') ?></th></tr></thead>
+                        <thead><tr><th><?= __('course_code') ?></th><th><?= __('course_title') ?></th><th><?= __('program_label') ?></th><th><?= __('category_label') ?></th><th><?= __('credits') ?></th><th><?= __('status') ?></th><th><?= __('manage') ?></th></tr></thead>
                         <tbody>
-                            <?php if (count($courses) === 0): ?><tr><td colspan="6"><?= __('no_course_records') ?></td></tr><?php endif; ?>
+                            <?php if (count($courses) === 0): ?><tr><td colspan="7"><?= __('no_course_records') ?></td></tr><?php endif; ?>
                             <?php foreach ($courses as $course): ?>
                                 <tr>
                                     <td class="mono"><?= htmlspecialchars($course['course_code']) ?></td>
@@ -112,6 +135,20 @@ $courses = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                             <span class="mono"><?= htmlspecialchars($course['program_code']) ?></span>
                                             <div style="font-size:12px;color:#8a7c5e;"><?= htmlspecialchars($course['program_name_th']) ?></div>
                                         <?php else: ?>-<?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <form method="post" style="display:flex;gap:4px;align-items:center;margin:0;">
+                                            <?= csrf_field() ?>
+                                            <input type="hidden" name="action" value="set_category">
+                                            <input type="hidden" name="id" value="<?= (int)$course['id'] ?>">
+                                            <select name="category" style="padding:4px;border:1px solid #d9cfb8;background:#fff;font-family:inherit;font-size:11px;">
+                                                <option value=""><?= __('select_category') ?></option>
+                                                <?php foreach ($categoryOptions as $catKey => $catLangKey): ?>
+                                                    <option value="<?= htmlspecialchars($catKey) ?>" <?= $course['category'] === $catKey ? 'selected' : '' ?>><?= __($catLangKey) ?></option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                            <button type="submit" class="btn btn-light" style="padding:4px 8px;font-size:11px;"><?= __('save') ?></button>
+                                        </form>
                                     </td>
                                     <td class="mono"><?= (int)$course['credits'] ?></td>
                                     <td><?= $course['status'] === 'active' ? '<span class="badge badge-green">' . __('active') . '</span>' : '<span class="badge badge-blue">' . __('inactive') . '</span>' ?></td>
@@ -129,6 +166,7 @@ $courses = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <form method="POST" action="courses.php">
                         <?= csrf_field() ?>
                         <div style="margin-bottom:14px;"><label style="display:block;font-size:12px;color:#8a7c5e;margin-bottom:6px;"><?= __('program_label') ?></label><select name="program_id" style="width:100%;padding:10px;border:1px solid #d9cfb8;background:#fff;font-family:inherit;"><option value=""><?= __('no_program_specified') ?></option><?php foreach ($programs as $program): ?><option value="<?= (int)$program['id'] ?>"><?= htmlspecialchars($program['program_code']) ?> - <?= htmlspecialchars($program['program_name_th']) ?></option><?php endforeach; ?></select></div>
+                        <div style="margin-bottom:14px;"><label style="display:block;font-size:12px;color:#8a7c5e;margin-bottom:6px;"><?= __('category_label') ?></label><select name="category" style="width:100%;padding:10px;border:1px solid #d9cfb8;background:#fff;font-family:inherit;"><option value=""><?= __('select_category') ?></option><?php foreach ($categoryOptions as $catKey => $catLangKey): ?><option value="<?= htmlspecialchars($catKey) ?>"><?= __($catLangKey) ?></option><?php endforeach; ?></select></div>
                         <div style="margin-bottom:14px;"><label style="display:block;font-size:12px;color:#8a7c5e;margin-bottom:6px;"><?= __('course_code') ?></label><input type="text" name="course_code" placeholder="<?= __('placeholder_course_code') ?>" required style="width:100%;padding:10px;border:1px solid #d9cfb8;background:#fff;font-family:inherit;"></div>
                         <div style="margin-bottom:14px;"><label style="display:block;font-size:12px;color:#8a7c5e;margin-bottom:6px;"><?= __('course_name_th') ?></label><input type="text" name="course_name_th" required style="width:100%;padding:10px;border:1px solid #d9cfb8;background:#fff;font-family:inherit;"></div>
                         <div style="margin-bottom:14px;"><label style="display:block;font-size:12px;color:#8a7c5e;margin-bottom:6px;"><?= __('course_name_en') ?></label><input type="text" name="course_name_en" style="width:100%;padding:10px;border:1px solid #d9cfb8;background:#fff;font-family:inherit;"></div>

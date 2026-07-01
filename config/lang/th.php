@@ -537,6 +537,13 @@ return [
     'duplicate_course_code' => 'รหัสรายวิชาซ้ำ',
     'save_failed_duplicate_course' => 'บันทึกไม่สำเร็จ อาจมีรหัสซ้ำ',
     'toggle' => 'สลับ',
+    'category_label' => 'หมวดวิชา',
+    'select_category' => '-- เลือกหมวดวิชา --',
+    'category_ips' => 'IPS / วิชาพื้นฐาน',
+    'category_concentration' => 'วิชาเอกบังคับ',
+    'category_general_ed' => 'วิชาศึกษาทั่วไป',
+    'category_elective' => 'วิชาเลือกเสรี',
+    'category_other' => 'อื่น ๆ',
 
     // Registrar – Professors (additional keys)
     'faculty_directory' => 'ทำเนียบอาจารย์',

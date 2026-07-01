@@ -537,6 +537,13 @@ return [
     'duplicate_course_code' => 'Duplicate course code',
     'save_failed_duplicate_course' => 'Save failed, possible duplicate code',
     'toggle' => 'Toggle',
+    'category_label' => 'Category',
+    'select_category' => '-- Select Category --',
+    'category_ips' => 'IPS / Foundation',
+    'category_concentration' => 'Concentration Requirements',
+    'category_general_ed' => 'General Education & Distribution',
+    'category_elective' => 'Electives',
+    'category_other' => 'Other',
 
     // Registrar – Professors (additional keys)
     'faculty_directory' => 'Faculty Directory',
