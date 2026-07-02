@@ -31,8 +31,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($check->fetchColumn()) {
                 $message = __('username_exists');
             } else {
-                $stmt = $pdo->prepare("INSERT INTO users (username, password, role) VALUES (?, MD5(?), ?)");
-                $stmt->execute([$username, $password, $role]);
+                $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+                $stmt = $pdo->prepare("INSERT INTO users (username, password, role) VALUES (?, ?, ?)");
+                $stmt->execute([$username, $passwordHash, $role]);
                 $newUserId = (int)$pdo->lastInsertId();
 
                 logAudit(
@@ -89,8 +90,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $targetStmt->execute([$targetUserId]);
             $targetUsername = $targetStmt->fetchColumn();
 
-            $stmt = $pdo->prepare("UPDATE users SET password = MD5(?) WHERE id = ?");
-            $stmt->execute([$newPassword, $targetUserId]);
+            $newPasswordHash = password_hash($newPassword, PASSWORD_DEFAULT);
+            $stmt = $pdo->prepare("UPDATE users SET password = ? WHERE id = ?");
+            $stmt->execute([$newPasswordHash, $targetUserId]);
 
             logAudit(
                 $pdo,
