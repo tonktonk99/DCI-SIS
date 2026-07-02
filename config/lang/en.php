@@ -612,6 +612,11 @@ return [
     'alumni_status_badge' => 'Alumni / Graduated',
     'concentration_declare_note' => 'Major/Concentration declaration opens in Year 2',
     'alumni_enrollment_closed_note' => 'Enrollment is closed for graduated/alumni students',
+    'already_alumni' => 'This student has already graduated or become alumni',
+    'graduate_requires_linked_account' => 'Cannot transition: no linked user account',
+    'graduate_requires_student_role' => 'Cannot transition: linked account is not currently a student',
+    'graduate_to_alumni_action' => 'Graduate → Alumni',
+    'confirm_graduate_to_alumni' => 'Change this student to graduated and their account to alumni? This cannot be easily undone.',
 
     // Generic error messages
     'save_failed'      => 'Save failed. Please try again.',

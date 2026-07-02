@@ -115,6 +115,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'set_p
     exit;
 }
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'graduate_to_alumni') {
+    verify_csrf();
+    $studentId = (int)($_POST['student_id'] ?? 0);
+
+    if ($studentId <= 0) {
+        $message = __('fill_student_code_name');
+    } else {
+        $lookupStmt = $pdo->prepare("SELECT students.id, students.user_id, students.study_status, users.id AS linked_user_id, users.role AS linked_user_role FROM students LEFT JOIN users ON users.id = students.user_id WHERE students.id = ? LIMIT 1");
+        $lookupStmt->execute([$studentId]);
+        $target = $lookupStmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$target) {
+            $message = __('no_student_records');
+        } elseif ($target['user_id'] === null || $target['linked_user_id'] === null) {
+            $message = __('graduate_requires_linked_account');
+        } elseif ($target['linked_user_role'] !== 'student') {
+            $message = __('graduate_requires_student_role');
+        } elseif (in_array($target['study_status'], ['graduated', 'alumni'], true)) {
+            $message = __('already_alumni');
+        } else {
+            $oldStatus = $target['study_status'];
+            $oldRole = $target['linked_user_role'];
+            $linkedUserId = (int)$target['linked_user_id'];
+
+            try {
+                $pdo->beginTransaction();
+                $pdo->prepare("UPDATE students SET study_status = 'graduated' WHERE id = ?")->execute([$studentId]);
+                $pdo->prepare("UPDATE users SET role = 'alumni' WHERE id = ?")->execute([$linkedUserId]);
+                logAudit(
+                    $pdo,
+                    $currentUserId,
+                    'STUDENT.GRADUATE_TO_ALUMNI',
+                    'students',
+                    $studentId,
+                    'student_id=' . $studentId . ' user_id=' . $linkedUserId
+                        . ' old_status=' . $oldStatus . ' new_status=graduated'
+                        . ' old_role=' . $oldRole . ' new_role=alumni'
+                );
+                $pdo->commit();
+                header('Location: students.php');
+                exit;
+            } catch (Throwable $e) {
+                if ($pdo->inTransaction()) $pdo->rollBack();
+                error_log('[students] graduate_to_alumni: ' . $e->getMessage());
+                $message = __('save_failed');
+            }
+        }
+    }
+}
+
 $search = input_string($_GET, 'q', '', 100);
 ['page' => $page, 'per_page' => $perPage] = validate_page_params($_GET, 50, 100);
 $offset = ($page - 1) * $perPage;
@@ -192,7 +242,7 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <td class="mono"><?= number_format((float)$student['cumulative_gpa'], 2) ?></td>
                         <td class="mono"><?= (int)$student['total_credits_earned'] ?></td>
                         <td><span class="badge badge-blue"><?= htmlspecialchars($student['study_status']) ?></span></td>
-                        <td><div style="display:flex;gap:6px;flex-wrap:wrap;"><form method="post" style="display:inline;"><?= csrf_field() ?><input type="hidden" name="action" value="set_status"><input type="hidden" name="id" value="<?= (int)$student['id'] ?>"><input type="hidden" name="status" value="studying"><button type="submit" class="btn btn-light" style="padding:6px 10px;font-size:11px;"><?= __('status_studying') ?></button></form><form method="post" style="display:inline;"><?= csrf_field() ?><input type="hidden" name="action" value="set_status"><input type="hidden" name="id" value="<?= (int)$student['id'] ?>"><input type="hidden" name="status" value="leave"><button type="submit" class="btn btn-light" style="padding:6px 10px;font-size:11px;"><?= __('status_leave') ?></button></form><form method="post" style="display:inline;"><?= csrf_field() ?><input type="hidden" name="action" value="set_status"><input type="hidden" name="id" value="<?= (int)$student['id'] ?>"><input type="hidden" name="status" value="graduated"><button type="submit" class="btn btn-light" style="padding:6px 10px;font-size:11px;"><?= __('status_graduated') ?></button></form></div></td>
+                        <td><div style="display:flex;gap:6px;flex-wrap:wrap;"><form method="post" style="display:inline;"><?= csrf_field() ?><input type="hidden" name="action" value="set_status"><input type="hidden" name="id" value="<?= (int)$student['id'] ?>"><input type="hidden" name="status" value="studying"><button type="submit" class="btn btn-light" style="padding:6px 10px;font-size:11px;"><?= __('status_studying') ?></button></form><form method="post" style="display:inline;"><?= csrf_field() ?><input type="hidden" name="action" value="set_status"><input type="hidden" name="id" value="<?= (int)$student['id'] ?>"><input type="hidden" name="status" value="leave"><button type="submit" class="btn btn-light" style="padding:6px 10px;font-size:11px;"><?= __('status_leave') ?></button></form><form method="post" style="display:inline;"><?= csrf_field() ?><input type="hidden" name="action" value="set_status"><input type="hidden" name="id" value="<?= (int)$student['id'] ?>"><input type="hidden" name="status" value="graduated"><button type="submit" class="btn btn-light" style="padding:6px 10px;font-size:11px;"><?= __('status_graduated') ?></button></form><?php if (!in_array($student['study_status'], ['graduated', 'alumni'], true)): ?><form method="post" style="display:inline;"><?= csrf_field() ?><input type="hidden" name="action" value="graduate_to_alumni"><input type="hidden" name="student_id" value="<?= (int)$student['id'] ?>"><button type="submit" class="btn btn-light" style="padding:6px 10px;font-size:11px;" onclick="return confirm('<?= __('confirm_graduate_to_alumni') ?>')"><?= __('graduate_to_alumni_action') ?></button></form><?php endif; ?></div></td>
                     </tr><?php endforeach; ?>
                 </tbody></table></div>
                 <?php if ($totalPages > 1): ?>
